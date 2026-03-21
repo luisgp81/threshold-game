@@ -1,0 +1,36 @@
+CAPSULE IMAGE CONCEPT — THRESHOLD: Global Crisis
+
+Size: 460x215px (small capsule), 616x353px (main capsule)
+
+━━━ VISUAL CONCEPT ━━━
+
+BACKGROUND:
+Dark navy-black (#0a0a1a) with subtle CRT scanline overlay.
+Faint grid lines suggesting a radar/tactical display.
+
+CENTER ELEMENT:
+A stylized world map rendered in glowing green wireframe (#00ff41).
+Six region nodes pulse with different threat levels.
+Three nodes showing red danger pulses.
+
+TEXT:
+"THRESHOLD" in large amber pixel/terminal font, top-center.
+Subtitle: "GLOBAL CRISIS" in smaller green text below.
+Bottom strip: "2027 — THE WORLD IS YOURS TO LOSE"
+
+ATMOSPHERIC DETAILS:
+• Corner vignette darkening
+• Subtle phosphor glow on text elements
+• "CLASSIFIED" stamp watermark (rotated, semi-transparent)
+• Static/noise texture overlay at low opacity
+• Blinking cursor after title text
+
+COLOR PALETTE:
+#0a0a1a — background
+#00ff41 — primary green (map, text)
+#ffb000 — amber (title, accents)
+#ff2d2d — red (threat indicators)
+#00dcff — cyan (subtitle)
+
+MOOD: Tense, intelligent, retro-futurist military terminal.
+TARGET FEEL: A monitor in a dark ops center, 3am, something is happening.

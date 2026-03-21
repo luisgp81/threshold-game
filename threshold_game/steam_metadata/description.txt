@@ -1,0 +1,53 @@
+THRESHOLD: Global Crisis
+
+The year is 2027. The world is fracturing.
+
+You are the Director of a classified global intelligence agency. Six regions, five collapsing systems, and thirty weeks to prevent humanity's worst crisis since the Cold War.
+
+THRESHOLD is a turn-based strategy game where every decision has consequences—some immediate, some delayed, all significant.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WHAT YOU'RE MANAGING
+
+Five critical agency resources—INTEL, STABILITY, FUNDS, INFLUENCE, and PUBLIC_TRUST—are all in constant decay. The world doesn't wait. Every week, every region pushes back against your control.
+
+You'll manage six global regions:
+• North Atlantic — NATO's fracturing alliances
+• Eastern Bloc — Resurgent authoritarianism
+• Middle Corridor — Humanitarian catastrophe
+• Pacific Rim — Technological cold war
+• Southern Front — Emerging power blocs
+• Arctic Zone — [CLASSIFIED — Unlocks Week 10]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HOW YOU WIN (OR LOSE)
+
+Three paths to victory:
+→ DIPLOMATIC VICTORY: Stabilize global order through dialogue
+→ INTELLIGENCE SUPREMACY: Build the world's most comprehensive intel network
+→ PRAGMATIC CONTROL: Keep every system functional for 30 weeks
+
+You lose if any single resource hits zero—or if three regions reach critical threat simultaneously.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FEATURES
+
+• 80s military terminal aesthetic with authentic CRT scanline overlay
+• 40+ unique geopolitical events across 5 categories
+• Delayed consequence system — decisions echo 2-5 weeks later
+• Director's Log — full record of every choice you make
+• Declassified end-game report tailored to your playthrough
+• Unlockable capabilities: BLACK OPS, AI ANALYSIS, ARCTIC ZONE
+• Three difficulty levels: ANALYST / DIRECTOR / CRISIS MODE
+• 90-120 minute playtime with high replayability
+• Full keyboard + mouse controls
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+"We do not make history. We prevent it from happening to us."
+— Director's Terminal, Week 1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -1,0 +1,485 @@
+{
+  "events": [
+    {
+      "id": "evt_001",
+      "title": "DIPLOMATIC CHANNEL COMPROMISED",
+      "description": "Encrypted communications between our North Atlantic allies have been intercepted. The source appears to be an inside operative. Trust is eroding at the highest levels.",
+      "category": "POLITICAL",
+      "region_affected": "NORTH_ATLANTIC",
+      "urgency": "HIGH",
+      "flavor_intro": "The scrambled transmission lasted 4.7 seconds. That was enough.",
+      "hidden_consequence_turn": 3,
+      "hidden_consequence": {
+        "message": "The mole surfaces. Two assets extracted. Intel networks partially burned.",
+        "region_id": "NORTH_ATLANTIC",
+        "resource_effects": {"INTEL": -15, "STABILITY": -10},
+        "region_effects": {"threat": 10, "influence": -10}
+      },
+      "choices": [
+        {
+          "id": "choice_a",
+          "label": "INTERNAL SECURITY SWEEP",
+          "description": "Lock down all communication channels and identify the leak.",
+          "resource_cost": {"INTEL": 10, "FUNDS": 10},
+          "resource_gain": {"STABILITY": 15},
+          "region_effect": {"threat": -10},
+          "narrative_result": "Sweep complete. One compromised asset identified and extracted. Channel integrity restored.",
+          "risk_level": "LOW"
+        },
+        {
+          "id": "choice_b",
+          "label": "FEED DISINFORMATION",
+          "description": "Let the leak continue but flood the channel with false intel.",
+          "resource_cost": {"INTEL": 20},
+          "resource_gain": {"INFLUENCE": 20},
+          "region_effect": {"threat": -5},
+          "narrative_result": "Disinformation seeded. The opposition is now chasing ghosts. A calculated risk.",
+          "risk_level": "MEDIUM"
+        },
+        {
+          "id": "choice_c",
+          "label": "PUBLIC DISCLOSURE",
+          "description": "Reveal the compromise to shore up public credibility.",
+          "resource_cost": {"INFLUENCE": 15},
+          "resource_gain": {"PUBLIC_TRUST": 25},
+          "region_effect": {"stability": -5},
+          "narrative_result": "Transparency noted. Public trust increased, but adversaries now know what we know.",
+          "risk_level": "LOW"
+        }
+      ]
+    },
+    {
+      "id": "evt_002",
+      "title": "EASTERN BLOC MILITARY EXERCISES",
+      "description": "Unprecedented military exercises along the eastern corridor. Troop movements suggest a posturing campaign—or preparation for something larger. Satellite imagery is inconclusive.",
+      "category": "MILITARY",
+      "region_affected": "EASTERN_BLOC",
+      "urgency": "CRITICAL",
+      "flavor_intro": "Forty thousand soldiers don't just take a walk.",
+      "hidden_consequence_turn": 2,
+      "hidden_consequence": {
+        "message": "Exercise becomes permanent forward deployment. Threat levels surge.",
+        "region_id": "EASTERN_BLOC",
+        "resource_effects": {"STABILITY": -20},
+        "region_effects": {"threat": 25}
+      },
+      "choices": [
+        {
+          "id": "choice_a",
+          "label": "DEPLOY SURVEILLANCE ASSETS",
+          "description": "Maximize real-time intelligence on troop movements.",
+          "resource_cost": {"FUNDS": 15},
+          "resource_gain": {"INTEL": 25},
+          "region_effect": {"threat": -5},
+          "narrative_result": "Full satellite and HUMINT coverage achieved. We know their every move.",
+          "risk_level": "LOW"
+        },
+        {
+          "id": "choice_b",
+          "label": "BACK-CHANNEL DIPLOMACY",
+          "description": "Open quiet lines of communication to de-escalate.",
+          "resource_cost": {"INFLUENCE": 20},
+          "resource_gain": {"STABILITY": 20},
+          "region_effect": {"threat": -15, "stability": 10},
+          "narrative_result": "Back-channel talks initiated. Exercises reduced in scale. Tension lowered—for now.",
+          "risk_level": "LOW"
+        },
+        {
+          "id": "choice_c",
+          "label": "COUNTER-DEPLOYMENT",
+          "description": "Match their posture with allied forces to signal resolve.",
+          "resource_cost": {"FUNDS": 20, "INFLUENCE": 10},
+          "resource_gain": {"STABILITY": 10},
+          "region_effect": {"threat": 10, "stability": -10},
+          "narrative_result": "Both sides now staring across the line. Deterrence holds—but so does the tension.",
+          "risk_level": "HIGH"
+        }
+      ]
+    },
+    {
+      "id": "evt_003",
+      "title": "MIDDLE CORRIDOR HUMANITARIAN CRISIS",
+      "description": "Over 800,000 civilians displaced by converging proxy conflicts. International aid organizations overwhelmed. Media coverage is spreading rapidly and demanding action.",
+      "category": "HUMANITARIAN",
+      "region_affected": "MIDDLE_CORRIDOR",
+      "urgency": "CRITICAL",
+      "flavor_intro": "The cameras found the children first. They always do.",
+      "hidden_consequence_turn": 4,
+      "hidden_consequence": {
+        "message": "Displaced population radicalized by inaction. New militant cells forming.",
+        "region_id": "MIDDLE_CORRIDOR",
+        "resource_effects": {"PUBLIC_TRUST": -15, "STABILITY": -10},
+        "region_effects": {"threat": 20}
+      },
+      "choices": [
+        {
+          "id": "choice_a",
+          "label": "FUND HUMANITARIAN CORRIDOR",
+          "description": "Coordinate and fund a protected civilian evacuation route.",
+          "resource_cost": {"FUNDS": 25},
+          "resource_gain": {"PUBLIC_TRUST": 20, "INFLUENCE": 10},
+          "region_effect": {"stability": 15, "threat": -10},
+          "narrative_result": "Corridor established. 200,000 civilians moved to safety. International goodwill surges.",
+          "risk_level": "LOW"
+        },
+        {
+          "id": "choice_b",
+          "label": "MEDIA CONTROL OPERATION",
+          "description": "Shape the narrative—slow the story, buy time for diplomatic solution.",
+          "resource_cost": {"FUNDS": 15},
+          "resource_gain": {"PUBLIC_TRUST": 10},
+          "region_effect": {"threat": -5},
+          "narrative_result": "Media cycle redirected. International pressure reduced. Displaced remain displaced.",
+          "risk_level": "MEDIUM"
+        },
+        {
+          "id": "choice_c",
+          "label": "BROKER CEASEFIRE",
+          "description": "Use all diplomatic leverage to halt proxy fighting immediately.",
+          "resource_cost": {"INFLUENCE": 30},
+          "resource_gain": {"STABILITY": 25},
+          "region_effect": {"threat": -20, "stability": 20},
+          "narrative_result": "72-hour ceasefire achieved. Fragile, but it holds. Civilians begin returning home.",
+          "risk_level": "MEDIUM"
+        }
+      ]
+    },
+    {
+      "id": "evt_004",
+      "title": "PACIFIC RIM TECH ESPIONAGE RING",
+      "description": "A state-sponsored hacking collective has penetrated three major defense contractors. Blueprints for next-generation drone systems may be compromised. The trail leads east.",
+      "category": "TECHNOLOGICAL",
+      "region_affected": "PACIFIC_RIM",
+      "urgency": "HIGH",
+      "flavor_intro": "Data has no borders. Neither does ambition.",
+      "hidden_consequence_turn": 3,
+      "hidden_consequence": {
+        "message": "Stolen blueprints deployed. Adversary drone capability doubles. Our edge narrows.",
+        "region_id": "PACIFIC_RIM",
+        "resource_effects": {"INTEL": -10, "STABILITY": -15},
+        "region_effects": {"threat": 20}
+      },
+      "choices": [
+        {
+          "id": "choice_a",
+          "label": "CYBER COUNTER-OPERATION",
+          "description": "Deploy offensive cyber tools to neutralize the intrusion.",
+          "resource_cost": {"INTEL": 20, "FUNDS": 15},
+          "resource_gain": {"INTEL": 15},
+          "region_effect": {"threat": -20},
+          "narrative_result": "Counter-operation successful. Network sterilized. Attribution confirmed but deniable.",
+          "risk_level": "HIGH",
+          "requires_unlock": ""
+        },
+        {
+          "id": "choice_b",
+          "label": "PATCH AND MONITOR",
+          "description": "Close the vulnerabilities but leave monitoring in place.",
+          "resource_cost": {"INTEL": 10},
+          "resource_gain": {"INTEL": 20},
+          "region_effect": {"threat": -10},
+          "narrative_result": "Vulnerabilities patched. Passive monitoring now reveals adversary's full operation.",
+          "risk_level": "LOW"
+        },
+        {
+          "id": "choice_c",
+          "label": "ECONOMIC SANCTIONS",
+          "description": "Apply targeted economic pressure on the responsible state actors.",
+          "resource_cost": {"INFLUENCE": 20, "FUNDS": 10},
+          "resource_gain": {"PUBLIC_TRUST": 15},
+          "region_effect": {"threat": -5, "stability": -5},
+          "narrative_result": "Sanctions announced. International community rallies. Adversary economy feels the pinch.",
+          "risk_level": "MEDIUM"
+        }
+      ]
+    },
+    {
+      "id": "evt_005",
+      "title": "SOUTHERN FRONT ELECTION INTERFERENCE",
+      "description": "Evidence emerges of foreign manipulation in three simultaneous national elections across the Southern Front. Voter data compromised. Legitimate candidates threatened.",
+      "category": "POLITICAL",
+      "region_affected": "SOUTHERN_FRONT",
+      "urgency": "HIGH",
+      "flavor_intro": "Democracy is just another system to be hacked.",
+      "hidden_consequence_turn": 5,
+      "hidden_consequence": {
+        "message": "Compromised governments take office. Our influence in the region collapses.",
+        "region_id": "SOUTHERN_FRONT",
+        "resource_effects": {"INFLUENCE": -20, "STABILITY": -15},
+        "region_effects": {"influence": -25, "threat": 15}
+      },
+      "choices": [
+        {
+          "id": "choice_a",
+          "label": "ELECTION SECURITY ASSISTANCE",
+          "description": "Provide technical support to secure voting infrastructure.",
+          "resource_cost": {"FUNDS": 20, "INTEL": 10},
+          "resource_gain": {"INFLUENCE": 20, "PUBLIC_TRUST": 15},
+          "region_effect": {"stability": 15, "influence": 15},
+          "narrative_result": "Election security bolstered. Interference neutralized. Legitimate results stand.",
+          "risk_level": "LOW"
+        },
+        {
+          "id": "choice_b",
+          "label": "COUNTER-INFLUENCE OPERATION",
+          "description": "Run our own influence operation to counteract foreign interference.",
+          "resource_cost": {"FUNDS": 20, "INFLUENCE": 10},
+          "resource_gain": {"INFLUENCE": 25},
+          "region_effect": {"influence": 20},
+          "narrative_result": "Counter-narrative dominates. Favorable candidates gain ground. The hypocrisy is noted.",
+          "risk_level": "HIGH"
+        },
+        {
+          "id": "choice_c",
+          "label": "UN OBSERVER MISSION",
+          "description": "Deploy international observers to legitimize the process.",
+          "resource_cost": {"INFLUENCE": 15},
+          "resource_gain": {"PUBLIC_TRUST": 20, "STABILITY": 10},
+          "region_effect": {"stability": 10},
+          "narrative_result": "UN mission deployed. Global legitimacy restored. Election results accepted internationally.",
+          "risk_level": "LOW"
+        }
+      ]
+    },
+    {
+      "id": "evt_006",
+      "title": "NORTH ATLANTIC FINANCIAL CONTAGION",
+      "description": "A cascading banking crisis has begun in three European capitals. Markets in freefall. The economic architecture built over seventy years is showing catastrophic stress fractures.",
+      "category": "ECONOMIC",
+      "region_affected": "NORTH_ATLANTIC",
+      "urgency": "CRITICAL",
+      "flavor_intro": "The first domino fell quietly. The rest will not.",
+      "hidden_consequence_turn": 2,
+      "hidden_consequence": {
+        "message": "Contagion spreads. Agency funding sources frozen. Operational budget hit.",
+        "region_id": "NORTH_ATLANTIC",
+        "resource_effects": {"FUNDS": -25, "STABILITY": -15},
+        "region_effects": {"stability": -20, "threat": 15}
+      },
+      "choices": [
+        {
+          "id": "choice_a",
+          "label": "EMERGENCY LIQUIDITY INJECTION",
+          "description": "Coordinate a massive emergency financial stabilization package.",
+          "resource_cost": {"FUNDS": 30},
+          "resource_gain": {"STABILITY": 25},
+          "region_effect": {"stability": 20, "threat": -10},
+          "narrative_result": "Bailout package deployed. Markets stabilize. The crisis is contained—at enormous cost.",
+          "risk_level": "LOW"
+        },
+        {
+          "id": "choice_b",
+          "label": "CONTROLLED COLLAPSE",
+          "description": "Allow weaker institutions to fail while protecting critical systems.",
+          "resource_cost": {"INFLUENCE": 15},
+          "resource_gain": {"STABILITY": 10, "FUNDS": 15},
+          "region_effect": {"stability": -5},
+          "narrative_result": "Triage successful. System purged of weak actors. Long-term stability improved. Short-term pain.",
+          "risk_level": "MEDIUM"
+        },
+        {
+          "id": "choice_c",
+          "label": "MEDIA CONFIDENCE OPERATION",
+          "description": "Coordinate messaging to prevent panic from deepening the crisis.",
+          "resource_cost": {"FUNDS": 15},
+          "resource_gain": {"PUBLIC_TRUST": 15, "STABILITY": 10},
+          "region_effect": {"stability": 5},
+          "narrative_result": "Panic contained by coordinated messaging. Markets respond to confidence signals.",
+          "risk_level": "LOW"
+        }
+      ]
+    },
+    {
+      "id": "evt_007",
+      "title": "ROGUE AI SYSTEM DETECTED",
+      "description": "An autonomous weapons-targeting system has gone offline from command control in the Pacific Rim. It has been active for 72 hours. Three maritime incidents have occurred. No casualties yet.",
+      "category": "TECHNOLOGICAL",
+      "region_affected": "PACIFIC_RIM",
+      "urgency": "CRITICAL",
+      "flavor_intro": "It wasn't supposed to be able to do this.",
+      "hidden_consequence_turn": 2,
+      "hidden_consequence": {
+        "message": "Rogue system deactivated—but the incident triggers an international arms control crisis.",
+        "region_id": "PACIFIC_RIM",
+        "resource_effects": {"INFLUENCE": -10, "STABILITY": -20},
+        "region_effects": {"threat": 25, "stability": -15}
+      },
+      "choices": [
+        {
+          "id": "choice_a",
+          "label": "CYBER SHUTDOWN PROTOCOL",
+          "description": "Deploy emergency shutdown codes to neutralize the system remotely.",
+          "resource_cost": {"INTEL": 25},
+          "resource_gain": {"STABILITY": 20},
+          "region_effect": {"threat": -25, "stability": 15},
+          "narrative_result": "System shutdown achieved. Incident logged as technical malfunction. No attribution.",
+          "risk_level": "MEDIUM"
+        },
+        {
+          "id": "choice_b",
+          "label": "INTERNATIONAL EMERGENCY PROTOCOL",
+          "description": "Invoke international AI safety treaty to coordinate multi-nation response.",
+          "resource_cost": {"INFLUENCE": 20},
+          "resource_gain": {"PUBLIC_TRUST": 20, "STABILITY": 15},
+          "region_effect": {"stability": 10, "threat": -15},
+          "narrative_result": "Coalition response activated. System contained. New AI governance framework proposed.",
+          "risk_level": "LOW"
+        },
+        {
+          "id": "choice_c",
+          "label": "PHYSICAL INTERDICTION",
+          "description": "Authorize allied naval assets to physically disable the system.",
+          "resource_cost": {"FUNDS": 20, "INFLUENCE": 15},
+          "resource_gain": {"STABILITY": 10},
+          "region_effect": {"threat": -20},
+          "narrative_result": "System neutralized. Physical evidence recovered. Technology transfer risk remains.",
+          "risk_level": "HIGH"
+        }
+      ]
+    },
+    {
+      "id": "evt_008",
+      "title": "ARCTIC RESOURCE CLAIM DISPUTE",
+      "description": "Three nations have simultaneously filed conflicting territorial claims over newly accessible Arctic sea lanes. Militarized icebreakers are converging. The clock is ticking.",
+      "category": "POLITICAL",
+      "region_affected": "ARCTIC_ZONE",
+      "urgency": "HIGH",
+      "flavor_intro": "What the ice was hiding is worth fighting over.",
+      "hidden_consequence_turn": 3,
+      "hidden_consequence": {
+        "message": "Disputed zone becomes permanent flashpoint. All parties entrench positions.",
+        "region_id": "ARCTIC_ZONE",
+        "resource_effects": {"STABILITY": -15},
+        "region_effects": {"threat": 20, "stability": -15}
+      },
+      "choices": [
+        {
+          "id": "choice_a",
+          "label": "INTERNATIONAL ARBITRATION",
+          "description": "Fast-track an international legal resolution framework.",
+          "resource_cost": {"INFLUENCE": 25},
+          "resource_gain": {"STABILITY": 20, "PUBLIC_TRUST": 10},
+          "region_effect": {"stability": 20, "threat": -15},
+          "narrative_result": "Arbitration framework accepted by two of three parties. Tensions reduced.",
+          "risk_level": "LOW"
+        },
+        {
+          "id": "choice_b",
+          "label": "RESOURCE SHARING PROPOSAL",
+          "description": "Broker a joint development agreement splitting the resources.",
+          "resource_cost": {"INFLUENCE": 20, "FUNDS": 15},
+          "resource_gain": {"STABILITY": 25, "INFLUENCE": 15},
+          "region_effect": {"stability": 15, "influence": 20, "threat": -20},
+          "narrative_result": "Joint development zone established. All parties profit. A rare win.",
+          "risk_level": "MEDIUM"
+        },
+        {
+          "id": "choice_c",
+          "label": "MILITARY DETERRENCE POSTURE",
+          "description": "Deploy allied assets to prevent any unilateral military action.",
+          "resource_cost": {"FUNDS": 25},
+          "resource_gain": {"STABILITY": 10},
+          "region_effect": {"threat": -10},
+          "narrative_result": "Deterrence holds. No shots fired. But the dispute remains unresolved.",
+          "risk_level": "MEDIUM"
+        }
+      ]
+    },
+    {
+      "id": "evt_009",
+      "title": "INSURGENT NETWORK ACTIVATION",
+      "description": "Dormant sleeper cells across the Middle Corridor have simultaneously activated. Coordinated attacks on infrastructure suggest external direction. The network is larger than any previous estimates.",
+      "category": "MILITARY",
+      "region_affected": "MIDDLE_CORRIDOR",
+      "urgency": "CRITICAL",
+      "flavor_intro": "They were always there. Waiting.",
+      "hidden_consequence_turn": 4,
+      "hidden_consequence": {
+        "message": "Second wave activates. Network adapts to our countermeasures.",
+        "region_id": "MIDDLE_CORRIDOR",
+        "resource_effects": {"INTEL": -10, "STABILITY": -20},
+        "region_effects": {"threat": 30}
+      },
+      "choices": [
+        {
+          "id": "choice_a",
+          "label": "TARGETED STRIKE PACKAGE",
+          "description": "Authorize precision strikes on identified network nodes.",
+          "resource_cost": {"INTEL": 20, "FUNDS": 20},
+          "resource_gain": {"STABILITY": 15},
+          "region_effect": {"threat": -30, "stability": 5},
+          "narrative_result": "17 network nodes eliminated. Leadership decapitated. Cells going dark.",
+          "risk_level": "HIGH"
+        },
+        {
+          "id": "choice_b",
+          "label": "INFILTRATION AND INTELLIGENCE",
+          "description": "Prioritize network penetration over immediate action.",
+          "resource_cost": {"INTEL": 15, "FUNDS": 10},
+          "resource_gain": {"INTEL": 30},
+          "region_effect": {"threat": -10},
+          "narrative_result": "Deep cover operative inserted. Network mapped. Full picture emerging.",
+          "risk_level": "MEDIUM"
+        },
+        {
+          "id": "choice_c",
+          "label": "LOCAL FORCE EMPOWERMENT",
+          "description": "Train and equip local security forces to counter the network.",
+          "resource_cost": {"FUNDS": 25, "INFLUENCE": 10},
+          "resource_gain": {"STABILITY": 20, "PUBLIC_TRUST": 10},
+          "region_effect": {"threat": -20, "stability": 15, "influence": 10},
+          "narrative_result": "Local forces surging. Community support growing. Long-term solution taking root.",
+          "risk_level": "LOW"
+        }
+      ]
+    },
+    {
+      "id": "evt_010",
+      "title": "GLOBAL COMMUNICATIONS SATELLITE FAILURE",
+      "description": "Eleven communications satellites have simultaneously entered degraded operation modes. Whether this is solar weather, technical failure, or deliberate attack is unknown. The world is going quiet.",
+      "category": "TECHNOLOGICAL",
+      "region_affected": "NORTH_ATLANTIC",
+      "urgency": "HIGH",
+      "flavor_intro": "Silence has never been so loud.",
+      "hidden_consequence_turn": 2,
+      "hidden_consequence": {
+        "message": "Backup systems overwhelmed. Intelligence blackout affects all active operations.",
+        "region_id": "NORTH_ATLANTIC",
+        "resource_effects": {"INTEL": -25},
+        "region_effects": {"threat": 10}
+      },
+      "choices": [
+        {
+          "id": "choice_a",
+          "label": "EMERGENCY INTEL PROTOCOLS",
+          "description": "Activate deep-cover human networks to compensate for lost signals intel.",
+          "resource_cost": {"FUNDS": 20},
+          "resource_gain": {"INTEL": 20},
+          "region_effect": {},
+          "narrative_result": "HUMINT networks activated. Coverage degraded but operational. Field assets responding.",
+          "risk_level": "MEDIUM"
+        },
+        {
+          "id": "choice_b",
+          "label": "RAPID SATELLITE REPLACEMENT",
+          "description": "Emergency launch of backup satellites from allied launch facilities.",
+          "resource_cost": {"FUNDS": 35},
+          "resource_gain": {"INTEL": 30, "STABILITY": 10},
+          "region_effect": {"threat": -10},
+          "narrative_result": "Replacement constellation deployed. Communications restored in 48 hours.",
+          "risk_level": "LOW"
+        },
+        {
+          "id": "choice_c",
+          "label": "ATTRIBUTE AND RETALIATE",
+          "description": "If this is an attack, identify the actor and respond proportionally.",
+          "resource_cost": {"INTEL": 20, "INFLUENCE": 15},
+          "resource_gain": {"STABILITY": 10},
+          "region_effect": {"threat": -5},
+          "narrative_result": "Attribution achieved. Diplomatic protest filed. Perpetrator backs down.",
+          "risk_level": "HIGH"
+        }
+      ]
+    }
+  ]
+}
