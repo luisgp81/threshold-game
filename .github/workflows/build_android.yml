@@ -57,15 +57,35 @@ jobs:
 
       - name: Build APK with Buildozer
         working-directory: threshold_game
-        run: buildozer android debug 2>&1 | tee build.log
+        run: |
+          set -o pipefail
+          buildozer android debug 2>&1 | tee build.log
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
-      - name: Rename APK
+      - name: Find and rename APK
         id: apk
         working-directory: threshold_game
         run: |
-          APK=$(find bin/ -name "*.apk" | head -1)
+          echo "=== Buscando APK en todo el directorio ==="
+          find . -name "*.apk" 2>/dev/null || echo "No se encontraron .apk"
+          echo "=== Contenido de bin/ ==="
+          ls -lh bin/ 2>/dev/null || echo "No existe bin/"
+          echo "=== Contenido de .buildozer/android/platform/build-*/dists/ ==="
+          find .buildozer -name "*.apk" 2>/dev/null | head -5 || echo "Nada en .buildozer"
+
+          # Buscar en todas las ubicaciones posibles
+          APK=$(find . -name "*.apk" 2>/dev/null | grep -v "\.buildozer/android/platform/android" | head -1)
+          if [ -z "$APK" ]; then
+            APK=$(find .buildozer -name "*debug*.apk" 2>/dev/null | head -1)
+          fi
+          if [ -z "$APK" ]; then
+            echo "ERROR: No se encontró ningún APK"
+            exit 1
+          fi
+
+          echo "APK encontrado: $APK"
+          mkdir -p bin
           NEW="bin/THRESHOLD-GlobalCrisis-v1.0-debug.apk"
           cp "$APK" "$NEW"
           echo "path=$NEW" >> $GITHUB_OUTPUT
