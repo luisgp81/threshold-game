@@ -5,7 +5,10 @@ on:
     branches:
       - claude/build-threshold-game-Z5XWk
       - main
-  workflow_dispatch:   # permite lanzarlo manualmente desde GitHub
+  workflow_dispatch:
+
+permissions:
+  contents: write   # necesario para crear Releases
 
 jobs:
   build-apk:
@@ -25,31 +28,12 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y \
-            python3-pip \
-            build-essential \
-            git \
-            ffmpeg \
-            libsdl2-dev \
-            libsdl2-image-dev \
-            libsdl2-mixer-dev \
-            libsdl2-ttf-dev \
-            libportmidi-dev \
-            libswscale-dev \
-            libavformat-dev \
-            libavcodec-dev \
-            zlib1g-dev \
-            libgstreamer1.0-dev \
-            gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good \
-            openjdk-17-jdk \
-            unzip \
-            zip \
-            autoconf \
-            libtool \
-            pkg-config \
-            cmake \
-            libffi-dev \
-            libssl-dev
+            python3-pip build-essential git ffmpeg \
+            libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
+            zlib1g-dev libgstreamer1.0-dev gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good openjdk-17-jdk \
+            unzip zip autoconf libtool pkg-config cmake libffi-dev libssl-dev
 
       - name: Install Buildozer and Cython
         run: |
@@ -61,8 +45,7 @@ jobs:
         with:
           path: ~/.buildozer
           key: buildozer-global-${{ runner.os }}-${{ hashFiles('threshold_game/buildozer.spec') }}
-          restore-keys: |
-            buildozer-global-${{ runner.os }}-
+          restore-keys: buildozer-global-${{ runner.os }}-
 
       - name: Cache Android SDK/NDK
         uses: actions/cache@v4
@@ -71,31 +54,71 @@ jobs:
             ~/.buildozer/android/platform
             ~/.buildozer/android/packages
           key: android-sdk-${{ runner.os }}-api33-ndk25b
-          restore-keys: |
-            android-sdk-${{ runner.os }}-
+          restore-keys: android-sdk-${{ runner.os }}-
 
       - name: Build APK with Buildozer
         working-directory: threshold_game
-        run: |
-          buildozer android debug 2>&1 | tee build.log
+        run: buildozer android debug 2>&1 | tee build.log
         env:
           JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
-      - name: Find APK
-        id: find_apk
+      - name: Rename APK with version tag
+        id: rename_apk
         working-directory: threshold_game
         run: |
           APK=$(find bin/ -name "*.apk" | head -1)
-          echo "apk_path=$APK" >> $GITHUB_OUTPUT
-          echo "Found APK: $APK"
-          ls -lh bin/ || true
+          NEW_NAME="THRESHOLD-GlobalCrisis-v1.0-debug.apk"
+          cp "$APK" "bin/$NEW_NAME"
+          echo "apk_file=threshold_game/bin/$NEW_NAME" >> $GITHUB_OUTPUT
+          echo "apk_name=$NEW_NAME" >> $GITHUB_OUTPUT
+          echo "size=$(du -h "bin/$NEW_NAME" | cut -f1)" >> $GITHUB_OUTPUT
 
-      - name: Upload APK as artifact
+      - name: Upload APK as artifact (fallback)
         uses: actions/upload-artifact@v4
         with:
           name: THRESHOLD-GlobalCrisis-debug
-          path: threshold_game/bin/*.apk
+          path: threshold_game/bin/THRESHOLD-GlobalCrisis-v1.0-debug.apk
           retention-days: 30
+
+      - name: Delete previous release if exists
+        run: |
+          gh release delete v1.0-android --yes 2>/dev/null || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0-android
+          name: "THRESHOLD: Global Crisis v1.0 — Android APK"
+          body: |
+            ## THRESHOLD: Global Crisis — Android APK
+
+            ### Instalación en Android
+
+            1. Descarga el archivo `.apk` de abajo
+            2. En tu móvil: **Ajustes → Seguridad → Instalar apps desconocidas** (actívalo)
+            3. Abre el `.apk` descargado y pulsa **Instalar**
+
+            ### Controles táctiles
+            - **Toca un evento** en la lista inferior para responder
+            - **Toca una región** en el mapa para ver detalles
+            - **END TURN** — finaliza la semana
+            - **LOG** — historial de decisiones
+            - **MENU** — ajustes y dificultad
+            - **Botón Atrás** de Android — vuelve a la pantalla anterior
+            - Desliza en el LOG para navegar
+
+            ### Requisitos
+            - Android 8.0 (API 26) o superior
+            - ~50 MB de espacio libre
+
+            > ⚠️ APK de desarrollo (debug). No firmado para Play Store.
+          files: threshold_game/bin/THRESHOLD-GlobalCrisis-v1.0-debug.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload build log on failure
         if: failure()
@@ -105,13 +128,13 @@ jobs:
           path: threshold_game/build.log
           retention-days: 7
 
-      - name: APK info
+      - name: Summary
         if: success()
-        working-directory: threshold_game
         run: |
-          APK=$(find bin/ -name "*.apk" | head -1)
-          if [ -n "$APK" ]; then
-            echo "✅ APK generado correctamente"
-            echo "📦 Tamaño: $(du -h "$APK" | cut -f1)"
-            echo "📁 Archivo: $APK"
-          fi
+          echo "## ✅ APK generado" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tamaño:** ${{ steps.rename_apk.outputs.size }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Release:** https://github.com/${{ github.repository }}/releases/tag/v1.0-android" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Descarga directa disponible en la sección **Releases** del repositorio." >> $GITHUB_STEP_SUMMARY
