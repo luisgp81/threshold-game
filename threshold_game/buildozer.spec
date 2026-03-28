@@ -8,9 +8,9 @@ source.include_exts = py,json,png,jpg,ttf,wav,ogg
 
 version = 1.0.0
 
-requirements = python3,pygame==2.1.2,sdl2,sdl2_image,sdl2_mixer,sdl2_ttf,libffi,openssl
+requirements = python3,pygame==2.1.2
 
-android.archs = arm64-v8a,armeabi-v7a
+android.archs = arm64-v8a
 
 # Android permissions
 android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,VIBRATE
