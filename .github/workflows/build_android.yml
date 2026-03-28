@@ -32,11 +32,13 @@ jobs:
         if: always()
         run: |
           echo "=== threshold_game/bin/ ==="
-          ls -lh ${{ github.workspace }}/threshold_game/bin/ 2>/dev/null || echo "(vacío o no existe)"
-          echo "=== Todos los .apk en workspace ==="
+          ls -lh ${{ github.workspace }}/threshold_game/bin/ 2>/dev/null || echo "(vacío)"
+          echo "=== Todos los .apk ==="
           find ${{ github.workspace }} -name "*.apk" 2>/dev/null || echo "Ningún APK"
-          echo "=== Últimas 30 líneas del build.log ==="
-          tail -30 ${{ github.workspace }}/threshold_game/build.log 2>/dev/null || echo "Sin log"
+          echo "=== ERRORES en build.log (grep) ==="
+          grep -i -E "(error|exception|failed|traceback|no such file|cannot|fatal)" \
+            ${{ github.workspace }}/threshold_game/build.log 2>/dev/null \
+            | grep -v "^#" | grep -v "color" | tail -60 || echo "Sin errores encontrados"
 
       - name: Find APK
         id: apk
