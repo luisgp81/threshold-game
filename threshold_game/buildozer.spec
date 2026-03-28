@@ -10,6 +10,8 @@ version = 1.0.0
 
 requirements = python3,pygame-ce
 
+orientation = landscape
+
 android.archs = arm64-v8a
 
 # Android permissions

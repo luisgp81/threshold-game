@@ -5,6 +5,7 @@ Supports desktop (mouse/keyboard) and Android (touch).
 """
 import os
 import sys
+import traceback
 import pygame
 
 # Ensure the threshold_game package is importable when run directly
@@ -16,6 +17,9 @@ try:
     IS_ANDROID = True
 except ImportError:
     IS_ANDROID = False
+
+# Safe K_AC_BACK constant — may not exist in all pygame-ce builds
+_AC_BACK = getattr(pygame, 'K_AC_BACK', 270)
 
 from game.engine import GameEngine, GameState
 from game.renderer import Renderer, SCREEN_W, SCREEN_H
@@ -31,7 +35,53 @@ DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 TARGET_FPS = 60
 
 
+def _log_error(msg: str):
+    """Write crash info to a file that can be retrieved for diagnosis."""
+    try:
+        if IS_ANDROID:
+            log_path = "/sdcard/threshold_error.log"
+        else:
+            log_path = os.path.join(os.path.dirname(__file__), "threshold_error.log")
+        with open(log_path, "a") as f:
+            f.write(msg + "\n")
+    except Exception:
+        pass
+
+
+def _init_display():
+    """Initialise display surface with Android-safe fallback chain."""
+    if IS_ANDROID:
+        # First try: FULLSCREEN only (most compatible with pygame-ce on Android)
+        try:
+            screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+            return screen
+        except Exception as e:
+            _log_error(f"set_mode FULLSCREEN failed: {e}")
+        # Second try: fixed size fullscreen
+        try:
+            screen = pygame.display.set_mode((SCREEN_W, SCREEN_H), pygame.FULLSCREEN)
+            return screen
+        except Exception as e:
+            _log_error(f"set_mode fixed FULLSCREEN failed: {e}")
+        # Last resort
+        return pygame.display.set_mode((SCREEN_W, SCREEN_H))
+    else:
+        try:
+            return pygame.display.set_mode((SCREEN_W, SCREEN_H), pygame.SCALED)
+        except Exception:
+            return pygame.display.set_mode((SCREEN_W, SCREEN_H))
+
+
 def main():
+    try:
+        _run()
+    except Exception:
+        tb = traceback.format_exc()
+        _log_error(tb)
+        raise
+
+
+def _run():
     pygame.init()
     pygame.display.set_caption("THRESHOLD: Global Crisis")
 
@@ -42,13 +92,7 @@ def main():
         "fullscreen": IS_ANDROID,
     }
 
-    if IS_ANDROID:
-        # On Android: fullscreen, auto-scaled to device resolution
-        screen = pygame.display.set_mode((SCREEN_W, SCREEN_H),
-                                         pygame.FULLSCREEN | pygame.SCALED)
-    else:
-        screen = pygame.display.set_mode((SCREEN_W, SCREEN_H), pygame.SCALED)
-
+    screen = _init_display()
     clock = pygame.time.Clock()
 
     # Try to set window icon (skip if assets missing)
@@ -111,7 +155,7 @@ def main():
                 continue
 
             # Android back button → ESC behaviour
-            if IS_ANDROID and event.type == pygame.KEYDOWN and event.key == pygame.K_AC_BACK:
+            if IS_ANDROID and event.type == pygame.KEYDOWN and event.key == _AC_BACK:
                 if current_screen in ("event_detail", "director_log", "settings"):
                     current_screen = "main_hud"
                     continue
@@ -119,21 +163,22 @@ def main():
                     running = False
                     break
 
-            # Map finger-touch to mouse events on Android (pygame SCALED does
-            # this automatically, but we also handle FINGERDOWN explicitly so
-            # swipe-scroll works in the log screen).
+            # Map finger-touch to mouse events on Android
             if event.type == pygame.FINGERDOWN:
-                # Convert normalised coords to screen pixels
-                fx = int(event.x * SCREEN_W)
-                fy = int(event.y * SCREEN_H)
-                # Inject a synthetic MOUSEBUTTONDOWN so all existing handlers work
+                # Convert normalised coords to actual screen pixels
+                sw = screen.get_width()
+                sh = screen.get_height()
+                fx = int(event.x * sw)
+                fy = int(event.y * sh)
                 synth = pygame.event.Event(pygame.MOUSEBUTTONDOWN,
                                            button=1, pos=(fx, fy))
                 pygame.event.post(synth)
                 continue
             if event.type == pygame.FINGERUP:
-                fx = int(event.x * SCREEN_W)
-                fy = int(event.y * SCREEN_H)
+                sw = screen.get_width()
+                sh = screen.get_height()
+                fx = int(event.x * sw)
+                fy = int(event.y * sh)
                 synth = pygame.event.Event(pygame.MOUSEBUTTONUP,
                                            button=1, pos=(fx, fy))
                 pygame.event.post(synth)
