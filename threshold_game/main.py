@@ -5,6 +5,7 @@ Supports desktop (mouse/keyboard) and Android (touch).
 """
 import os
 import sys
+import time
 import traceback
 import pygame
 
@@ -21,50 +22,127 @@ except ImportError:
 # Safe K_AC_BACK constant — may not exist in all pygame-ce builds
 _AC_BACK = getattr(pygame, 'K_AC_BACK', 270)
 
-from game.engine import GameEngine, GameState
-from game.renderer import Renderer, SCREEN_W, SCREEN_H
-from game.screens.intro import IntroScreen
-from game.screens.main_hud import MainHUD
-from game.screens.event_screen import EventScreen
-from game.screens.game_over import GameOverScreen
-from game.screens.settings import SettingsScreen
-from game.screens.director_log import DirectorLogScreen
+# ── Error helpers ─────────────────────────────────────────────────────────────
 
-DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-
-TARGET_FPS = 60
+def _log_path():
+    if IS_ANDROID:
+        # Try multiple writable locations on Android
+        for p in ("/sdcard/threshold_error.log",
+                  "/sdcard/Android/data/org.threshold.thresholdglobalcrisis/threshold_error.log"):
+            try:
+                with open(p, "a") as f:
+                    f.write("")
+                return p
+            except Exception:
+                pass
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "threshold_error.log")
 
 
 def _log_error(msg: str):
-    """Write crash info to a file that can be retrieved for diagnosis."""
     try:
-        if IS_ANDROID:
-            log_path = "/sdcard/threshold_error.log"
-        else:
-            log_path = os.path.join(os.path.dirname(__file__), "threshold_error.log")
-        with open(log_path, "a") as f:
+        with open(_log_path(), "a") as f:
             f.write(msg + "\n")
     except Exception:
         pass
 
 
+def _show_error_screen(tb: str):
+    """Display a traceback on-screen so the user can photograph it."""
+    try:
+        if not pygame.get_init():
+            pygame.init()
+        if pygame.display.get_surface() is None:
+            try:
+                scr = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+            except Exception:
+                try:
+                    scr = pygame.display.set_mode((800, 480))
+                except Exception:
+                    return
+        else:
+            scr = pygame.display.get_surface()
+
+        font = pygame.font.Font(None, 22)
+        scr.fill((10, 0, 0))
+
+        header = font.render("THRESHOLD CRASH — PHOTOGRAPH THIS SCREEN", True, (255, 80, 80))
+        scr.blit(header, (5, 5))
+
+        lines = tb.replace("\r", "").split("\n")
+        y = 32
+        for line in lines:
+            # Wrap long lines
+            while len(line) > 58:
+                surf = font.render(line[:58], True, (255, 200, 200))
+                scr.blit(surf, (5, y))
+                y += 20
+                line = "  " + line[58:]
+                if y > scr.get_height() - 30:
+                    break
+            if y > scr.get_height() - 30:
+                break
+            surf = font.render(line, True, (255, 200, 200))
+            scr.blit(surf, (5, y))
+            y += 20
+
+        pygame.display.flip()
+
+        # Keep error visible for up to 60 seconds (tap/click to dismiss)
+        deadline = time.time() + 60
+        while time.time() < deadline:
+            for ev in pygame.event.get():
+                if ev.type in (pygame.QUIT, pygame.MOUSEBUTTONDOWN,
+                               pygame.FINGERDOWN, pygame.KEYDOWN):
+                    return
+            time.sleep(0.1)
+    except Exception:
+        pass
+
+
+# ── Game imports (after error helpers are defined) ────────────────────────────
+
+try:
+    from game.engine import GameEngine, GameState
+    from game.renderer import Renderer, SCREEN_W, SCREEN_H
+    from game.screens.intro import IntroScreen
+    from game.screens.main_hud import MainHUD
+    from game.screens.event_screen import EventScreen
+    from game.screens.game_over import GameOverScreen
+    from game.screens.settings import SettingsScreen
+    from game.screens.director_log import DirectorLogScreen
+except Exception as _import_err:
+    _tb = traceback.format_exc()
+    _log_error("IMPORT ERROR:\n" + _tb)
+    pygame.init()
+    _show_error_screen("IMPORT ERROR:\n" + _tb)
+    sys.exit(1)
+
+DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+TARGET_FPS = 60
+
+
 def _init_display():
     """Initialise display surface with Android-safe fallback chain."""
     if IS_ANDROID:
-        # First try: FULLSCREEN only (most compatible with pygame-ce on Android)
+        # Try FULLSCREEN + SCALED (logical 1280×720 scaled to device)
         try:
-            screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-            return screen
+            s = pygame.display.set_mode((SCREEN_W, SCREEN_H),
+                                        pygame.FULLSCREEN | pygame.SCALED)
+            _log_error(f"display OK: FULLSCREEN|SCALED {s.get_size()}")
+            return s
         except Exception as e:
-            _log_error(f"set_mode FULLSCREEN failed: {e}")
-        # Second try: fixed size fullscreen
+            _log_error(f"FULLSCREEN|SCALED failed: {e}")
+        # Fallback: plain FULLSCREEN at fixed size
         try:
-            screen = pygame.display.set_mode((SCREEN_W, SCREEN_H), pygame.FULLSCREEN)
-            return screen
+            s = pygame.display.set_mode((SCREEN_W, SCREEN_H), pygame.FULLSCREEN)
+            _log_error(f"display OK: FULLSCREEN fixed {s.get_size()}")
+            return s
         except Exception as e:
-            _log_error(f"set_mode fixed FULLSCREEN failed: {e}")
+            _log_error(f"FULLSCREEN fixed failed: {e}")
         # Last resort
-        return pygame.display.set_mode((SCREEN_W, SCREEN_H))
+        s = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+        _log_error(f"display OK: no flags {s.get_size()}")
+        return s
     else:
         try:
             return pygame.display.set_mode((SCREEN_W, SCREEN_H), pygame.SCALED)
@@ -77,12 +155,14 @@ def main():
         _run()
     except Exception:
         tb = traceback.format_exc()
-        _log_error(tb)
-        raise
+        _log_error("RUNTIME ERROR:\n" + tb)
+        _show_error_screen("RUNTIME ERROR:\n" + tb)
+        sys.exit(1)
 
 
 def _run():
     pygame.init()
+    _log_error(f"pygame.init OK, version={pygame.version.ver}")
     pygame.display.set_caption("THRESHOLD: Global Crisis")
 
     settings = {
@@ -104,11 +184,12 @@ def _run():
     except Exception:
         pass
 
+    _log_error("creating Renderer...")
     renderer = Renderer(screen, settings)
+    _log_error("creating GameEngine...")
     engine = GameEngine(DATA_PATH)
     engine.settings = settings
 
-    # Load narrative data for intro
     import json
     try:
         with open(os.path.join(DATA_PATH, "narrative.json"), "r") as f:
@@ -116,7 +197,7 @@ def _run():
     except Exception:
         narrative_data = {}
 
-    # Screens
+    _log_error("creating screens...")
     intro_screen = IntroScreen(renderer, narrative_data)
     main_hud = MainHUD(renderer, engine)
     event_screen = EventScreen(renderer)
@@ -127,17 +208,15 @@ def _run():
     current_screen = "intro"
     prev_screen = "intro"
 
-    # Start game immediately on first play
     engine.start_new_game(settings["difficulty"])
-    # But show intro first
     engine.state = GameState.INTRO
+    _log_error("entering game loop")
 
     running = True
     while running:
         dt = clock.tick(TARGET_FPS) / 1000.0
-        dt = min(dt, 0.1)  # Cap delta time
+        dt = min(dt, 0.1)
 
-        # ─── Event handling ──────────────────────────────────────────────────
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -154,7 +233,7 @@ def _run():
                 renderer.screen = screen
                 continue
 
-            # Android back button → ESC behaviour
+            # Android back button
             if IS_ANDROID and event.type == pygame.KEYDOWN and event.key == _AC_BACK:
                 if current_screen in ("event_detail", "director_log", "settings"):
                     current_screen = "main_hud"
@@ -163,34 +242,25 @@ def _run():
                     running = False
                     break
 
-            # Map finger-touch to mouse events on Android
+            # Map touch to mouse
             if event.type == pygame.FINGERDOWN:
-                # Convert normalised coords to actual screen pixels
-                sw = screen.get_width()
-                sh = screen.get_height()
-                fx = int(event.x * sw)
-                fy = int(event.y * sh)
-                synth = pygame.event.Event(pygame.MOUSEBUTTONDOWN,
-                                           button=1, pos=(fx, fy))
-                pygame.event.post(synth)
+                sw, sh = screen.get_width(), screen.get_height()
+                fx, fy = int(event.x * sw), int(event.y * sh)
+                pygame.event.post(pygame.event.Event(
+                    pygame.MOUSEBUTTONDOWN, button=1, pos=(fx, fy)))
                 continue
             if event.type == pygame.FINGERUP:
-                sw = screen.get_width()
-                sh = screen.get_height()
-                fx = int(event.x * sw)
-                fy = int(event.y * sh)
-                synth = pygame.event.Event(pygame.MOUSEBUTTONUP,
-                                           button=1, pos=(fx, fy))
-                pygame.event.post(synth)
+                sw, sh = screen.get_width(), screen.get_height()
+                fx, fy = int(event.x * sw), int(event.y * sh)
+                pygame.event.post(pygame.event.Event(
+                    pygame.MOUSEBUTTONUP, button=1, pos=(fx, fy)))
                 continue
 
-            # ── Intro ────────────────────────────────────────────────────────
             if current_screen == "intro":
                 if intro_screen.handle_event(event):
                     current_screen = "main_hud"
                     engine.state = GameState.MAIN_HUD
 
-            # ── Main HUD ─────────────────────────────────────────────────────
             elif current_screen == "main_hud":
                 result = main_hud.handle_event(event)
                 if result:
@@ -202,7 +272,7 @@ def _run():
                         prev_screen = "main_hud"
                         current_screen = "event_detail"
                     elif action == "region_detail":
-                        pass  # handled inline via tooltip for now
+                        pass
                     elif action == "next_turn":
                         result_state = engine.advance_turn()
                         engine.save_game()
@@ -218,19 +288,14 @@ def _run():
                     elif action == "settings":
                         current_screen = "settings"
 
-            # ── Event Detail ─────────────────────────────────────────────────
             elif current_screen == "event_detail":
                 result = event_screen.handle_event(event)
                 if result:
                     action, data = result
                     if action == "choose" and data:
-                        # Execute the choice
-                        success, message = engine.take_action(
-                            event_screen.event, data
-                        )
+                        success, message = engine.take_action(event_screen.event, data)
                         if success:
                             event_screen.show_result_text(message, data)
-                            # Check for immediate win/lose after action
                             win_lose = engine.check_win_lose()
                             if win_lose == "GAME_OVER":
                                 game_over_screen.setup(False)
@@ -244,7 +309,6 @@ def _run():
                     elif action == "back":
                         current_screen = "main_hud"
 
-            # ── Game Over / Victory ──────────────────────────────────────────
             elif current_screen == "game_over":
                 result = game_over_screen.handle_event(event)
                 if result == "restart":
@@ -262,21 +326,17 @@ def _run():
                     director_log_screen = DirectorLogScreen(renderer, engine.narrative)
                     current_screen = "intro"
 
-            # ── Settings ─────────────────────────────────────────────────────
             elif current_screen == "settings":
                 result = settings_screen.handle_event(event)
                 if result == "back":
-                    # Apply difficulty change if game not started
                     renderer.settings = settings
                     engine.settings = settings
                     current_screen = "main_hud"
 
-            # ── Director Log ─────────────────────────────────────────────────
             elif current_screen == "director_log":
                 if director_log_screen.handle_event(event):
                     current_screen = "main_hud"
 
-        # ─── Updates ─────────────────────────────────────────────────────────
         if current_screen == "intro":
             intro_screen.update(dt)
         elif current_screen == "main_hud":
@@ -290,7 +350,6 @@ def _run():
         elif current_screen == "director_log":
             director_log_screen.update(dt)
 
-        # ─── Drawing ─────────────────────────────────────────────────────────
         if current_screen == "intro":
             intro_screen.draw()
         elif current_screen == "main_hud":
