@@ -13,126 +13,78 @@ permissions:
 jobs:
   build-apk:
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install system dependencies
+      - name: Build APK via kivy/buildozer Docker image
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y \
-            python3-pip build-essential git \
-            libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
-            zlib1g-dev openjdk-17-jdk \
-            unzip zip autoconf libtool pkg-config cmake libffi-dev libssl-dev
+          docker run --rm \
+            -v ${{ github.workspace }}/threshold_game:/home/user/hostcwd \
+            kivy/buildozer:latest \
+            android debug 2>&1 | tee ${{ github.workspace }}/threshold_game/build.log
 
-      - name: Install Buildozer and Cython
-        run: |
-          pip install --upgrade pip
-          pip install buildozer==1.5.0 cython==0.29.37
-
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v4
-        with:
-          path: ~/.buildozer
-          key: buildozer-global-${{ runner.os }}-${{ hashFiles('threshold_game/buildozer.spec') }}
-          restore-keys: buildozer-global-${{ runner.os }}-
-
-      - name: Cache Android SDK/NDK
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer/android/platform
-            ~/.buildozer/android/packages
-          key: android-sdk-${{ runner.os }}-api33-ndk25b
-          restore-keys: android-sdk-${{ runner.os }}-
-
-      - name: Build APK with Buildozer
-        working-directory: threshold_game
-        run: |
-          set -o pipefail
-          buildozer android debug 2>&1 | tee build.log
-        env:
-          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
-
-      - name: Find and rename APK
+      - name: Find APK
         id: apk
-        working-directory: threshold_game
         run: |
-          echo "=== Buscando APK en todo el directorio ==="
-          find . -name "*.apk" 2>/dev/null || echo "No se encontraron .apk"
-          echo "=== Contenido de bin/ ==="
-          ls -lh bin/ 2>/dev/null || echo "No existe bin/"
-          echo "=== Contenido de .buildozer/android/platform/build-*/dists/ ==="
-          find .buildozer -name "*.apk" 2>/dev/null | head -5 || echo "Nada en .buildozer"
-
-          # Buscar en todas las ubicaciones posibles
-          APK=$(find . -name "*.apk" 2>/dev/null | grep -v "\.buildozer/android/platform/android" | head -1)
+          echo "=== Buscando APK ==="
+          find ${{ github.workspace }}/threshold_game -name "*.apk" 2>/dev/null
+          APK=$(find ${{ github.workspace }}/threshold_game -name "*.apk" 2>/dev/null | head -1)
           if [ -z "$APK" ]; then
-            APK=$(find .buildozer -name "*debug*.apk" 2>/dev/null | head -1)
-          fi
-          if [ -z "$APK" ]; then
-            echo "ERROR: No se encontró ningún APK"
+            echo "ERROR: No APK encontrado"
             exit 1
           fi
-
-          echo "APK encontrado: $APK"
-          mkdir -p bin
-          NEW="bin/THRESHOLD-GlobalCrisis-v1.0-debug.apk"
-          cp "$APK" "$NEW"
-          echo "path=$NEW" >> $GITHUB_OUTPUT
-          echo "size=$(du -h $NEW | cut -f1)" >> $GITHUB_OUTPUT
+          echo "APK: $APK ($(du -h $APK | cut -f1))"
+          DEST="${{ github.workspace }}/threshold_game/THRESHOLD-GlobalCrisis-v1.0-debug.apk"
+          cp "$APK" "$DEST"
+          echo "dest=$DEST" >> $GITHUB_OUTPUT
+          echo "size=$(du -h $DEST | cut -f1)" >> $GITHUB_OUTPUT
 
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: THRESHOLD-GlobalCrisis-debug
-          path: threshold_game/bin/THRESHOLD-GlobalCrisis-v1.0-debug.apk
+          path: threshold_game/THRESHOLD-GlobalCrisis-v1.0-debug.apk
           retention-days: 30
 
-      - name: Create or update GitHub Release
+      - name: Create GitHub Release
+        if: success()
         run: |
-          APK="threshold_game/bin/THRESHOLD-GlobalCrisis-v1.0-debug.apk"
+          APK="${{ github.workspace }}/threshold_game/THRESHOLD-GlobalCrisis-v1.0-debug.apk"
           TAG="v1.0-android"
+
+          # Borrar release y tag previos si existen
+          curl -s -X DELETE \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG" || true
+          sleep 2
+          curl -s -X DELETE \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$TAG" || true
+          sleep 2
+
           NOTES="## THRESHOLD: Global Crisis — Android APK
 
           ### Instalación
           1. Descarga el archivo \`.apk\` de abajo
-          2. En tu móvil: **Ajustes → Seguridad → Instalar apps desconocidas** (actívalo)
+          2. En tu móvil: **Ajustes → Seguridad → Instalar apps desconocidas** (actívalo para tu navegador)
           3. Abre el \`.apk\` y pulsa **Instalar**
 
           ### Controles táctiles
-          - Toca un evento en la lista para responder
+          - Toca un evento en la lista inferior para responder
           - Toca una región en el mapa para ver detalles
           - **END TURN** — finaliza la semana
           - **LOG** — historial de decisiones
-          - **MENU** — ajustes
+          - **MENU** — ajustes y dificultad
           - Botón Atrás de Android — pantalla anterior
           - Desliza en el LOG para navegar
 
           ### Requisitos
           - Android 8.0 (API 26) o superior
-          - ~50 MB de espacio libre"
+          - ~60 MB de espacio libre"
 
-          # Borra el release anterior si existe
-          curl -s -X DELETE \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG" || true
-
-          # Borra el tag si existe
-          curl -s -X DELETE \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$TAG" || true
-
-          # Crea el release
           RELEASE=$(curl -s -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
@@ -145,16 +97,22 @@ jobs:
               \"prerelease\": false
             }")
 
-          UPLOAD_URL=$(echo "$RELEASE" | python3 -c 'import json,sys; print(json.loads(sys.stdin.read())["upload_url"])' | sed 's/{?name,label}//')
+          UPLOAD_URL=$(echo "$RELEASE" | python3 -c \
+            'import json,sys; print(json.loads(sys.stdin.read()).get("upload_url",""))' \
+            | sed 's/{?name,label}//')
 
-          # Sube el APK
+          if [ -z "$UPLOAD_URL" ]; then
+            echo "Error creando release: $RELEASE"
+            exit 1
+          fi
+
           curl -s -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
             -H "Content-Type: application/vnd.android.package-archive" \
             --data-binary @"$APK" \
             "${UPLOAD_URL}?name=THRESHOLD-GlobalCrisis-v1.0-debug.apk"
 
-          echo "✅ Release publicado en:"
+          echo "✅ Release publicado:"
           echo "https://github.com/${{ github.repository }}/releases/tag/$TAG"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -170,7 +128,7 @@ jobs:
       - name: Summary
         if: success()
         run: |
-          echo "## ✅ APK generado y publicado" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ APK compilado y publicado" >> $GITHUB_STEP_SUMMARY
           echo "**Tamaño:** ${{ steps.apk.outputs.size }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Descarga:** https://github.com/${{ github.repository }}/releases/tag/v1.0-android" >> $GITHUB_STEP_SUMMARY
