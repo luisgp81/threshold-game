@@ -1,11 +1,18 @@
 """
 THRESHOLD: Global Crisis - Director's Log Screen
-Scrollable history of all decisions
+Scrollable history of all decisions.
+Android: swipe via FINGERMOTION to scroll; close button on screen.
 """
 import pygame
 from ..renderer import (Renderer, BG, GREEN, GREEN_DIM, AMBER, WHITE,
                          DARK_GRAY, SCREEN_W, SCREEN_H, CYAN, RED)
 from ..narrative import NarrativeManager
+
+try:
+    import android  # noqa: F401
+    _IS_ANDROID = True
+except ImportError:
+    _IS_ANDROID = False
 
 
 class DirectorLogScreen:
@@ -13,8 +20,13 @@ class DirectorLogScreen:
         self.renderer = renderer
         self.narrative = narrative
         self.scroll_y: int = 0
-        self.line_height: int = 18
+        self.line_height: int = 22 if _IS_ANDROID else 18
         self._total_height: int = 0
+        self._touch_start_y: int = 0   # for swipe-scroll on Android
+        self._close_rect: pygame.Rect = pygame.Rect(0, 0, 1, 1)
+
+    def _max_scroll(self) -> int:
+        return max(0, self._total_height - (SCREEN_H - 120))
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         """Returns True if should close."""
@@ -24,22 +36,31 @@ class DirectorLogScreen:
             elif event.key == pygame.K_UP:
                 self.scroll_y = max(0, self.scroll_y - self.line_height * 3)
             elif event.key == pygame.K_DOWN:
-                max_scroll = max(0, self._total_height - (SCREEN_H - 100))
-                self.scroll_y = min(max_scroll, self.scroll_y + self.line_height * 3)
+                self.scroll_y = min(self._max_scroll(),
+                                    self.scroll_y + self.line_height * 3)
             elif event.key == pygame.K_HOME:
                 self.scroll_y = 0
             elif event.key == pygame.K_END:
-                self.scroll_y = max(0, self._total_height - (SCREEN_H - 100))
+                self.scroll_y = self._max_scroll()
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                if self._close_rect.collidepoint(event.pos):
+                    return True
             if event.button == 4:
                 self.scroll_y = max(0, self.scroll_y - self.line_height * 3)
             elif event.button == 5:
-                max_scroll = max(0, self._total_height - (SCREEN_H - 100))
-                self.scroll_y = min(max_scroll, self.scroll_y + self.line_height * 3)
+                self.scroll_y = min(self._max_scroll(),
+                                    self.scroll_y + self.line_height * 3)
 
         elif event.type == pygame.MOUSEWHEEL:
             self.scroll_y = max(0, self.scroll_y - event.y * self.line_height * 2)
+
+        # Touch swipe for Android (FINGERMOTION gives dx/dy as fractions of screen)
+        elif event.type == pygame.FINGERMOTION:
+            dy_px = int(-event.dy * SCREEN_H)
+            self.scroll_y = max(0, min(self._max_scroll(),
+                                       self.scroll_y + dy_px))
 
         return False
 
@@ -133,7 +154,12 @@ class DirectorLogScreen:
             pygame.draw.rect(r.screen, GREEN_DIM, (sb_x, thumb_y, 8, thumb_h))
 
         # Footer
-        r.text("[ ESC / L ] CLOSE  |  ARROWS / SCROLL: NAVIGATE",
-               30, SCREEN_H - 28, GREEN_DIM, r.font_small)
+        if _IS_ANDROID:
+            self._close_rect = r.button(8, SCREEN_H - 60, SCREEN_W - 16, 52,
+                                         "CLOSE LOG", color=GREEN_DIM)
+        else:
+            self._close_rect = pygame.Rect(0, 0, 1, 1)  # invisible on desktop
+            r.text("[ ESC / L ] CLOSE  |  ARROWS / SCROLL: NAVIGATE",
+                   30, SCREEN_H - 28, GREEN_DIM, r.font_small)
 
         r.apply_crt()

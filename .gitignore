@@ -2,5 +2,8 @@ __pycache__/
 *.pyc
 dist/
 build/
-*.spec
+# PyInstaller spec files (but not buildozer.spec)
+/*.spec
+threshold_game/*.spec
+!threshold_game/buildozer.spec
 savegame.json

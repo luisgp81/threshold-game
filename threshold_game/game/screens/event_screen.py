@@ -1,6 +1,7 @@
 """
 THRESHOLD: Global Crisis - Event Detail Screen
-Shows full event info and 3 action choices
+Shows full event info and 3 action choices.
+Android: larger choice cards, full-width back button.
 """
 import pygame
 from typing import Optional, List
@@ -9,6 +10,12 @@ from ..renderer import (Renderer, BG, GREEN, GREEN_DIM, AMBER, WHITE,
                          CATEGORY_COLORS, URGENCY_COLORS)
 from ..events import Event, ActionChoice
 from ..resources import Resources, RESOURCE_NAMES
+
+try:
+    import android  # noqa: F401
+    _IS_ANDROID = True
+except ImportError:
+    _IS_ANDROID = False
 
 
 class EventScreen:
@@ -114,9 +121,13 @@ class EventScreen:
         cat_col = CATEGORY_COLORS.get(ev.category, GREEN)
         urg_col = URGENCY_COLORS.get(ev.urgency, AMBER)
 
-        # Left panel: event details
-        panel_x, panel_y = 30, 45
-        panel_w = 560
+        # Layout — on Android give more room to choices (right panel)
+        if _IS_ANDROID:
+            panel_x, panel_y = 8, 42
+            panel_w = 460
+        else:
+            panel_x, panel_y = 30, 45
+            panel_w = 560
         r.box_titled(panel_x, panel_y, panel_w, SCREEN_H - 80,
                      "[ INCIDENT REPORT ]", cat_col, cat_col)
 
@@ -164,14 +175,15 @@ class EventScreen:
         self._choice_rects = []
         mx, my = pygame.mouse.get_pos()
 
+        # Taller cards on Android for comfortable tapping
+        ch_h = 140 if _IS_ANDROID else 110
+
         for i, choice in enumerate(self.available_choices):
             is_sel = (i == self.selected_choice)
             can_afford = self._can_afford(choice)
-            is_hover = False
 
-            ch_h = 110
             ch_rect = pygame.Rect(act_x + 8, ay, act_w - 16, ch_h)
-            is_hover = ch_rect.collidepoint(mx, my)
+            is_hover = ch_rect.collidepoint(mx, my) and not _IS_ANDROID
             self._choice_rects.append(ch_rect)
 
             if is_sel:
@@ -224,10 +236,15 @@ class EventScreen:
 
             ay += ch_h + 8
 
-        # Back button
-        back_y = SCREEN_H - 55
-        self._back_rect = r.button(act_x + 8, back_y, act_w - 16, 30,
-                                    "[ ESC ] DEFER INCIDENT", color=GREEN_DIM)
+        # Back button — full width on Android for easy reach
+        if _IS_ANDROID:
+            back_y = SCREEN_H - 62
+            self._back_rect = r.button(8, back_y, SCREEN_W - 16, 54,
+                                        "DEFER / BACK", color=GREEN_DIM)
+        else:
+            back_y = SCREEN_H - 55
+            self._back_rect = r.button(act_x + 8, back_y, act_w - 16, 30,
+                                        "[ ESC ] DEFER INCIDENT", color=GREEN_DIM)
 
         # Controls hint
         r.text("ARROW KEYS / CLICK TO SELECT  |  ENTER / 1-3 TO CONFIRM",

@@ -55,7 +55,19 @@ class Renderer:
 
     def _init_fonts(self):
         pygame.font.init()
-        # Try system monospace fonts
+        # Detect Android for larger touch-friendly fonts
+        try:
+            import android  # noqa: F401
+            _android = True
+        except ImportError:
+            _android = False
+
+        # Sizes: Android uses ~1.6x larger for legibility on small screens
+        if _android:
+            sz_small, sz_med, sz_large, sz_title = 18, 22, 30, 44
+        else:
+            sz_small, sz_med, sz_large, sz_title = 13, 16, 22, 32
+
         mono_candidates = [
             "Courier New", "Courier", "DejaVu Sans Mono",
             "Liberation Mono", "FreeMono", "monospace"
@@ -63,7 +75,7 @@ class Renderer:
         found = None
         for name in mono_candidates:
             try:
-                test = pygame.font.SysFont(name, 14)
+                test = pygame.font.SysFont(name, sz_small)
                 if test:
                     found = name
                     break
@@ -71,15 +83,18 @@ class Renderer:
                 continue
 
         if found:
-            self.font_small = pygame.font.SysFont(found, 13)
-            self.font_med = pygame.font.SysFont(found, 16)
-            self.font_large = pygame.font.SysFont(found, 22)
-            self.font_title = pygame.font.SysFont(found, 32, bold=True)
+            self.font_small = pygame.font.SysFont(found, sz_small)
+            self.font_med   = pygame.font.SysFont(found, sz_med)
+            self.font_large = pygame.font.SysFont(found, sz_large)
+            self.font_title = pygame.font.SysFont(found, sz_title, bold=True)
         else:
-            self.font_small = pygame.font.Font(None, 18)
-            self.font_med = pygame.font.Font(None, 22)
-            self.font_large = pygame.font.Font(None, 28)
-            self.font_title = pygame.font.Font(None, 40)
+            self.font_small = pygame.font.Font(None, sz_small + 5)
+            self.font_med   = pygame.font.Font(None, sz_med   + 5)
+            self.font_large = pygame.font.Font(None, sz_large + 5)
+            self.font_title = pygame.font.Font(None, sz_title + 5)
+
+        # Touch target minimum height (pixels) — used by button()
+        self.touch_min_h = 56 if _android else 26
 
     def _init_scanlines(self):
         self._scanline_surface = pygame.Surface(
@@ -196,6 +211,8 @@ class Renderer:
     def button(self, x: int, y: int, w: int, h: int, label: str,
                active: bool = False, disabled: bool = False,
                color=GREEN_DIM, hover: bool = False) -> pygame.Rect:
+        # Enforce minimum touch target height on Android
+        h = max(h, self.touch_min_h)
         rect = pygame.Rect(x, y, w, h)
         bg = DARK_GRAY
         border = color

@@ -1,6 +1,7 @@
 """
 THRESHOLD: Global Crisis
 Main entry point — connects all modules
+Supports desktop (mouse/keyboard) and Android (touch).
 """
 import os
 import sys
@@ -8,6 +9,13 @@ import pygame
 
 # Ensure the threshold_game package is importable when run directly
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Detect Android
+try:
+    import android  # noqa: F401
+    IS_ANDROID = True
+except ImportError:
+    IS_ANDROID = False
 
 from game.engine import GameEngine, GameState
 from game.renderer import Renderer, SCREEN_W, SCREEN_H
@@ -31,10 +39,16 @@ def main():
         "volume": 70,
         "crt_effect": True,
         "difficulty": "DIRECTOR",
-        "fullscreen": False,
+        "fullscreen": IS_ANDROID,
     }
 
-    screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+    if IS_ANDROID:
+        # On Android: fullscreen, auto-scaled to device resolution
+        screen = pygame.display.set_mode((SCREEN_W, SCREEN_H),
+                                         pygame.FULLSCREEN | pygame.SCALED)
+    else:
+        screen = pygame.display.set_mode((SCREEN_W, SCREEN_H), pygame.SCALED)
+
     clock = pygame.time.Clock()
 
     # Try to set window icon (skip if assets missing)
@@ -85,15 +99,44 @@ def main():
                 running = False
                 break
 
-            # Global fullscreen toggle
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
+            # Global fullscreen toggle (desktop only)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_F11 and not IS_ANDROID:
                 settings["fullscreen"] = not settings["fullscreen"]
                 if settings["fullscreen"]:
                     screen = pygame.display.set_mode(
-                        (SCREEN_W, SCREEN_H), pygame.FULLSCREEN)
+                        (SCREEN_W, SCREEN_H), pygame.FULLSCREEN | pygame.SCALED)
                 else:
-                    screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+                    screen = pygame.display.set_mode((SCREEN_W, SCREEN_H), pygame.SCALED)
                 renderer.screen = screen
+                continue
+
+            # Android back button → ESC behaviour
+            if IS_ANDROID and event.type == pygame.KEYDOWN and event.key == pygame.K_AC_BACK:
+                if current_screen in ("event_detail", "director_log", "settings"):
+                    current_screen = "main_hud"
+                    continue
+                elif current_screen == "main_hud":
+                    running = False
+                    break
+
+            # Map finger-touch to mouse events on Android (pygame SCALED does
+            # this automatically, but we also handle FINGERDOWN explicitly so
+            # swipe-scroll works in the log screen).
+            if event.type == pygame.FINGERDOWN:
+                # Convert normalised coords to screen pixels
+                fx = int(event.x * SCREEN_W)
+                fy = int(event.y * SCREEN_H)
+                # Inject a synthetic MOUSEBUTTONDOWN so all existing handlers work
+                synth = pygame.event.Event(pygame.MOUSEBUTTONDOWN,
+                                           button=1, pos=(fx, fy))
+                pygame.event.post(synth)
+                continue
+            if event.type == pygame.FINGERUP:
+                fx = int(event.x * SCREEN_W)
+                fy = int(event.y * SCREEN_H)
+                synth = pygame.event.Event(pygame.MOUSEBUTTONUP,
+                                           button=1, pos=(fx, fy))
+                pygame.event.post(synth)
                 continue
 
             # ── Intro ────────────────────────────────────────────────────────

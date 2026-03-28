@@ -1,6 +1,7 @@
 """
 THRESHOLD: Global Crisis - Main HUD Screen
-Map left, resources right, events bottom
+Map left, resources right, events bottom.
+Android: large on-screen buttons replace keyboard shortcuts.
 """
 import pygame
 from typing import Optional, List
@@ -9,6 +10,12 @@ from ..renderer import (Renderer, BG, GREEN, GREEN_DIM, AMBER, WHITE,
                          MID_GRAY)
 from ..engine import GameEngine
 from ..regions import Region
+
+try:
+    import android  # noqa: F401
+    _IS_ANDROID = True
+except ImportError:
+    _IS_ANDROID = False
 
 
 class MainHUD:
@@ -26,7 +33,7 @@ class MainHUD:
         self.show_preview: bool = False
 
     def handle_event(self, event: pygame.event.Event):
-        """Returns action string or None."""
+        """Returns (action, data) tuple or None."""
         if event.type == pygame.MOUSEMOTION:
             mx, my = event.pos
             self.hover_region = None
@@ -37,22 +44,23 @@ class MainHUD:
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mx, my = event.pos
-            # Check region clicks
+
+            # Named action buttons (END TURN, LOG, SETTINGS)
+            for name, rect in self._btn_rects.items():
+                if rect.collidepoint(mx, my):
+                    return (name, None)
+
+            # Region clicks on map
             for rid, rect in self._map_rects.items():
                 if rect.collidepoint(mx, my):
                     self.selected_region = self.engine.get_region_by_id(rid)
                     return ("region_detail", self.selected_region)
 
-            # Check event clicks
+            # Event row clicks
             for i, rect in enumerate(self._event_rects):
                 if rect.collidepoint(mx, my) and i < len(self.engine.current_events):
                     self.selected_event_idx = i
                     return ("event_detail", self.engine.current_events[i])
-
-            # Check buttons
-            for name, rect in self._btn_rects.items():
-                if rect.collidepoint(mx, my):
-                    return (name, None)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_n:
@@ -82,100 +90,170 @@ class MainHUD:
             if self.status_timer <= 0:
                 self.status_msg = ""
 
+    # ── Layout constants ──────────────────────────────────────────────────────
+    # On Android we shrink the map slightly and give more vertical space to
+    # the event list and the large touch buttons at the bottom.
+
+    def _layout(self):
+        if _IS_ANDROID:
+            # Landscape phone: reserve 130px bottom strip for 3 large buttons
+            MAP_X, MAP_Y = 8, 34
+            MAP_W, MAP_H = 700, 340
+            RES_X = MAP_X + MAP_W + 8
+            RES_Y = 34
+            RES_W = SCREEN_W - RES_X - 8
+
+            BTN_STRIP_H = 130          # tall strip at very bottom for touch
+            EVT_Y = MAP_Y + MAP_H + 6
+            EVT_H = SCREEN_H - EVT_Y - BTN_STRIP_H - 4
+            EVT_X, EVT_W = 8, SCREEN_W - 16
+        else:
+            MAP_X, MAP_Y = 10, 35
+            MAP_W, MAP_H = 720, 390
+            RES_X, RES_Y = 740, 35
+            RES_W = SCREEN_W - RES_X - 10
+            BTN_STRIP_H = 0
+            EVT_X, EVT_Y = 10, MAP_Y + MAP_H + 8
+            EVT_W = SCREEN_W - 20
+            EVT_H = SCREEN_H - EVT_Y - 30
+
+        return (MAP_X, MAP_Y, MAP_W, MAP_H,
+                RES_X, RES_Y, RES_W,
+                EVT_X, EVT_Y, EVT_W, EVT_H,
+                BTN_STRIP_H)
+
     def draw(self):
         r = self.renderer
         engine = self.engine
         r.clear()
         r.draw_header()
 
-        # Layout
-        MAP_X, MAP_Y = 10, 35
-        MAP_W, MAP_H = 720, 390
-        RES_X, RES_Y = 740, 35
-        RES_W = SCREEN_W - RES_X - 10
+        (MAP_X, MAP_Y, MAP_W, MAP_H,
+         RES_X, RES_Y, RES_W,
+         EVT_X, EVT_Y, EVT_W, EVT_H,
+         BTN_STRIP_H) = self._layout()
 
-        EVT_X, EVT_Y = 10, MAP_Y + MAP_H + 8
-        EVT_W = SCREEN_W - 20
-        EVT_H = SCREEN_H - EVT_Y - 30
-
-        # World Map
+        # ── World Map ─────────────────────────────────────────────────────────
         self._map_rects = r.draw_world_map(
             engine.regions, engine.turn, MAP_X, MAP_Y, MAP_W, MAP_H,
             self.selected_region
         )
 
-        # Resources
-        ry_end = r.draw_resource_panel(engine.resources, RES_X, RES_Y, RES_W)
+        # ── Resources ─────────────────────────────────────────────────────────
+        r.draw_resource_panel(engine.resources, RES_X, RES_Y, RES_W)
 
-        # Turn info
+        # ── Turn info ─────────────────────────────────────────────────────────
         r.draw_turn_info(engine.turn, engine.max_turns,
                           engine.flavor_text, RES_X, RES_Y + 210, RES_W)
 
-        # Consequence messages
+        # ── Consequence alerts ────────────────────────────────────────────────
         if engine.consequence_messages:
-            cm_y = RES_Y + 280
+            cm_y = RES_Y + 275
             for msg in engine.consequence_messages[:3]:
-                r.text(msg[:40], RES_X, cm_y, AMBER, r.font_small)
+                r.text(msg[:38], RES_X, cm_y, AMBER, r.font_small)
                 cm_y += 15
 
-        # Region tooltip
-        if self.hover_region and (
-                self.hover_region.unlocks_turn == 0 or
-                engine.turn >= self.hover_region.unlocks_turn):
-            reg = self.hover_region
-            tooltip_x = MAP_X + int(reg.map_pos[0] * MAP_W) + 20
-            tooltip_y = MAP_Y + int(reg.map_pos[1] * MAP_H) - 10
-            tooltip_x = min(tooltip_x, SCREEN_W - 200)
-            tooltip_y = min(tooltip_y, MAP_Y + MAP_H - 60)
-            pygame.draw.rect(r.screen, DARK_GRAY,
-                              (tooltip_x, tooltip_y, 190, 55))
-            pygame.draw.rect(r.screen, reg.color,
-                              (tooltip_x, tooltip_y, 190, 55), 1)
-            r.text(reg.name, tooltip_x + 5, tooltip_y + 5, reg.color, r.font_small)
-            r.text(f"STABILITY: {reg.stability_level:3d}", tooltip_x + 5,
-                   tooltip_y + 20, GREEN, r.font_small)
-            r.text(f"THREAT:    {reg.threat_level:3d}", tooltip_x + 5,
-                   tooltip_y + 34, RED if reg.is_critical else AMBER, r.font_small)
+        # ── Region tooltip (desktop hover / last tapped on Android) ───────────
+        show_tip = self.hover_region or (
+            _IS_ANDROID and self.selected_region)
+        tip_region = self.hover_region or (
+            self.selected_region if _IS_ANDROID else None)
+        if tip_region and (tip_region.unlocks_turn == 0 or
+                           engine.turn >= tip_region.unlocks_turn):
+            reg = tip_region
+            tip_x = MAP_X + int(reg.map_pos[0] * MAP_W) + 18
+            tip_y = MAP_Y + int(reg.map_pos[1] * MAP_H) - 10
+            tip_x = min(tip_x, SCREEN_W - 205)
+            tip_y = min(max(tip_y, MAP_Y + 5), MAP_Y + MAP_H - 65)
+            tip_h = 70 if _IS_ANDROID else 58
+            pygame.draw.rect(r.screen, DARK_GRAY, (tip_x, tip_y, 200, tip_h))
+            pygame.draw.rect(r.screen, reg.color, (tip_x, tip_y, 200, tip_h), 1)
+            r.text(reg.name, tip_x + 6, tip_y + 5, reg.color, r.font_small)
+            r.text(f"STABILITY: {reg.stability_level:3d}", tip_x + 6,
+                   tip_y + 22, GREEN, r.font_small)
+            r.text(f"THREAT:    {reg.threat_level:3d}", tip_x + 6,
+                   tip_y + 38, RED if reg.is_critical else AMBER, r.font_small)
+            if _IS_ANDROID:
+                r.text(f"INFLUENCE: {reg.influence_level:3d}", tip_x + 6,
+                       tip_y + 54, CYAN, r.font_small)
 
-        # Action buttons (right panel lower)
-        btn_y = RES_Y + 380
+        # ── Action buttons ────────────────────────────────────────────────────
         self._btn_rects = {}
-        btn_w = RES_W
-        btn_items = [
-            ("next_turn", "[ N ] END WEEK / ADVANCE TURN", GREEN if engine.actions_taken_this_turn > 0 else AMBER),
-            ("director_log", "[ L ] DIRECTOR'S LOG", GREEN_DIM),
-            ("settings", "[ ESC ] SETTINGS", GREEN_DIM),
-        ]
-        for name, label, col in btn_items:
-            rect = r.button(RES_X, btn_y, btn_w, 26, label, color=col)
-            self._btn_rects[name] = rect
-            btn_y += 30
+        if _IS_ANDROID:
+            self._draw_android_buttons(BTN_STRIP_H)
+        else:
+            self._draw_desktop_buttons(RES_X, RES_Y, RES_W)
 
-        # AI Analysis preview
+        # ── AI Analysis preview label ─────────────────────────────────────────
         if self.show_preview and engine.preview_events:
             r.text(">> AI ORACLE: PREDICTED NEXT EVENTS:", MAP_X + 5,
-                   MAP_Y + MAP_H - 20, CYAN, r.font_small)
+                   MAP_Y + MAP_H - 18, CYAN, r.font_small)
 
-        # Event list
+        # ── Event list ────────────────────────────────────────────────────────
         self._event_rects = r.draw_event_list(
             engine.current_events, EVT_X, EVT_Y, EVT_W, EVT_H,
             self.selected_event_idx
         )
 
-        # Status message
-        if self.status_msg:
-            r.text(f">> {self.status_msg}", EVT_X + 10, SCREEN_H - 28,
-                   AMBER, r.font_small)
+        # ── Status / flavor text ──────────────────────────────────────────────
+        if not _IS_ANDROID:
+            status_y = SCREEN_H - 28
+            if self.status_msg:
+                r.text(f">> {self.status_msg}", EVT_X + 10, status_y,
+                       AMBER, r.font_small)
+            elif engine.flavor_text:
+                r.text(f'"{engine.flavor_text}"', EVT_X + 10, status_y,
+                       GREEN_DIM, r.font_small)
 
-        # Flavor text
-        if engine.flavor_text and not self.status_msg:
-            r.text(f'"{engine.flavor_text}"', EVT_X + 10, SCREEN_H - 28,
-                   GREEN_DIM, r.font_small)
+            r.draw_footer(
+                engine.actions_taken_this_turn,
+                engine.max_actions_per_turn,
+                engine.summit_cooldown,
+                engine.unlocked_abilities,
+            )
 
-        r.draw_footer(
-            engine.actions_taken_this_turn,
-            engine.max_actions_per_turn,
-            engine.summit_cooldown,
-            engine.unlocked_abilities
-        )
         r.apply_crt()
+
+    # ── Button helpers ────────────────────────────────────────────────────────
+
+    def _draw_desktop_buttons(self, res_x, res_y, res_w):
+        r = self.renderer
+        engine = self.engine
+        btn_y = res_y + 380
+        items = [
+            ("next_turn",
+             "[ N ] END WEEK",
+             GREEN if engine.actions_taken_this_turn > 0 else AMBER),
+            ("director_log", "[ L ] DIRECTOR LOG", GREEN_DIM),
+            ("settings",     "[ ESC ] SETTINGS",   GREEN_DIM),
+        ]
+        for name, label, col in items:
+            rect = r.button(res_x, btn_y, res_w, 26, label, color=col)
+            self._btn_rects[name] = rect
+            btn_y += 30
+
+    def _draw_android_buttons(self, strip_h: int):
+        """Three wide touch buttons at the bottom of the screen."""
+        r = self.renderer
+        engine = self.engine
+
+        strip_y = SCREEN_H - strip_h
+        # Thin separator line
+        pygame.draw.line(r.screen, GREEN_DIM, (0, strip_y), (SCREEN_W, strip_y), 1)
+
+        margin = 6
+        btn_h = strip_h - margin * 2
+        total_w = SCREEN_W - margin * 4
+        btn_w = total_w // 3
+
+        end_col = GREEN if engine.actions_taken_this_turn > 0 else AMBER
+        items = [
+            ("next_turn",    "END TURN",  end_col),
+            ("director_log", "LOG",       GREEN_DIM),
+            ("settings",     "MENU",      GREEN_DIM),
+        ]
+        for i, (name, label, col) in enumerate(items):
+            bx = margin + i * (btn_w + margin)
+            by = strip_y + margin
+            rect = r.button(bx, by, btn_w, btn_h, label, color=col)
+            self._btn_rects[name] = rect
