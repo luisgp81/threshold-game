@@ -21,10 +21,22 @@ jobs:
 
       - name: Build APK via kivy/buildozer Docker image
         run: |
+          set -o pipefail
           docker run --rm \
             -v ${{ github.workspace }}/threshold_game:/home/user/hostcwd \
             kivy/buildozer:latest \
             android debug 2>&1 | tee ${{ github.workspace }}/threshold_game/build.log
+          echo "Docker exit code: $?"
+
+      - name: List workspace after build
+        if: always()
+        run: |
+          echo "=== threshold_game/bin/ ==="
+          ls -lh ${{ github.workspace }}/threshold_game/bin/ 2>/dev/null || echo "(vacío o no existe)"
+          echo "=== Todos los .apk en workspace ==="
+          find ${{ github.workspace }} -name "*.apk" 2>/dev/null || echo "Ningún APK"
+          echo "=== Últimas 30 líneas del build.log ==="
+          tail -30 ${{ github.workspace }}/threshold_game/build.log 2>/dev/null || echo "Sin log"
 
       - name: Find APK
         id: apk
