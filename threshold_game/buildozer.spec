@@ -8,7 +8,7 @@ source.include_exts = py,json,png,jpg,ttf,wav,ogg
 
 version = 1.0.0
 
-requirements = python3,pygame
+requirements = python3,pygame-ce
 
 android.archs = arm64-v8a
 

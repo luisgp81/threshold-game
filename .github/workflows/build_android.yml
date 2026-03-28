@@ -31,14 +31,21 @@ jobs:
       - name: List workspace after build
         if: always()
         run: |
-          echo "=== threshold_game/bin/ ==="
-          ls -lh ${{ github.workspace }}/threshold_game/bin/ 2>/dev/null || echo "(vacío)"
-          echo "=== Todos los .apk ==="
+          LOG="${{ github.workspace }}/threshold_game/build.log"
+          echo "=== APKs encontrados ==="
           find ${{ github.workspace }} -name "*.apk" 2>/dev/null || echo "Ningún APK"
-          echo "=== ERRORES en build.log (grep) ==="
-          grep -i -E "(error|exception|failed|traceback|no such file|cannot|fatal)" \
-            ${{ github.workspace }}/threshold_game/build.log 2>/dev/null \
-            | grep -v "^#" | grep -v "color" | tail -60 || echo "Sin errores encontrados"
+          echo ""
+          echo "=== ERROR REAL (p4a toolchain) ==="
+          grep -n -A3 \
+            -E "(recipe for|Could not find|No module named|ImportError|ModuleNotFoundError|undefined reference|error:.*ld|cannot find -l|fatal error:|PermissionError|ConnectionError|HTTPError|pip.*error|pkg.*not found)" \
+            "$LOG" 2>/dev/null | grep -v "^#" | head -80 || echo "(nada encontrado con grep1)"
+          echo ""
+          echo "=== TRACEBACK ==="
+          grep -n -A5 "Traceback\|Exception\|Error:" "$LOG" 2>/dev/null \
+            | grep -v "^#" | head -60 || echo "(sin traceback)"
+          echo ""
+          echo "=== Últimas 50 líneas del log ==="
+          tail -50 "$LOG" 2>/dev/null || echo "Sin log"
 
       - name: Find APK
         id: apk
