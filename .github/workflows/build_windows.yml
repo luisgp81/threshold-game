@@ -22,99 +22,65 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        working-directory: threshold_game
         run: pip install pygame pyinstaller
 
       - name: Build EXE with PyInstaller
         working-directory: threshold_game
+        shell: bash
         run: |
-          pyinstaller `
-            --onedir `
-            --windowed `
-            --name=THRESHOLD_GlobalCrisis `
-            "--add-data=data;data" `
-            "--add-data=assets;assets" `
-            "--add-data=game;game" `
-            --hidden-import=pygame `
-            --hidden-import=pygame.font `
-            --hidden-import=pygame.mixer `
-            --hidden-import=json `
-            --clean `
-            --noconfirm `
+          python -m PyInstaller \
+            --onedir \
+            --windowed \
+            --name=THRESHOLD_GlobalCrisis \
+            "--add-data=data;data" \
+            "--add-data=assets;assets" \
+            --hidden-import=pygame \
+            --hidden-import=pygame.font \
+            --hidden-import=pygame.mixer \
+            --hidden-import=json \
+            --clean \
+            --noconfirm \
             main.py
 
-      - name: Zip the build
+      - name: List output
+        shell: bash
         run: |
-          Compress-Archive `
-            -Path threshold_game\dist\THRESHOLD_GlobalCrisis `
-            -DestinationPath THRESHOLD-Windows.zip
-        shell: pwsh
+          echo "=== dist contents ==="
+          ls -la threshold_game/dist/THRESHOLD_GlobalCrisis/ || echo "dist folder not found"
+          echo "=== looking for exe ==="
+          find threshold_game/dist -name "*.exe" 2>/dev/null || echo "no exe found"
 
-      - name: Create or update GitHub Release
+      - name: Zip the build
+        shell: bash
+        run: |
+          cd threshold_game/dist
+          7z a -tzip ../../THRESHOLD-Windows.zip THRESHOLD_GlobalCrisis/
+          cd ../..
+          ls -la THRESHOLD-Windows.zip
+
+      - name: Delete old release if exists
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: pwsh
+        shell: bash
         run: |
-          $tag = "v1.0-windows"
-          $repo = "${{ github.repository }}"
-          $headers = @{
-            Authorization = "Bearer $env:GITHUB_TOKEN"
-            Accept = "application/vnd.github+json"
-          }
+          gh release delete v1.0-windows --yes --cleanup-tag 2>/dev/null || true
 
-          # Delete existing release if present
-          $existing = Invoke-RestMethod `
-            -Uri "https://api.github.com/repos/$repo/releases/tags/$tag" `
-            -Headers $headers -Method Get -ErrorAction SilentlyContinue
-          if ($existing) {
-            Invoke-RestMethod `
-              -Uri "https://api.github.com/repos/$repo/releases/$($existing.id)" `
-              -Headers $headers -Method Delete
-          }
+      - name: Create GitHub Release with EXE
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          gh release create v1.0-windows \
+            THRESHOLD-Windows.zip \
+            --title "THRESHOLD: Global Crisis — Windows PC" \
+            --notes "## Instalación
+          1. Descarga **THRESHOLD-Windows.zip**
+          2. Extrae la carpeta THRESHOLD_GlobalCrisis
+          3. Ejecuta **THRESHOLD_GlobalCrisis.exe**
 
-          # Delete existing tag
-          Invoke-RestMethod `
-            -Uri "https://api.github.com/repos/$repo/git/refs/tags/$tag" `
-            -Headers $headers -Method Delete -ErrorAction SilentlyContinue
+          No necesita instalar Python ni ninguna dependencia.
 
-          # Create new release
-          $body = @{
-            tag_name = $tag
-            name = "THRESHOLD: Global Crisis — Windows"
-            body = "## THRESHOLD: Global Crisis — Windows PC
-
-### Instalación
-1. Descarga **THRESHOLD-Windows.zip**
-2. Extrae la carpeta `THRESHOLD_GlobalCrisis`
-3. Ejecuta `THRESHOLD_GlobalCrisis.exe`
-
-No necesita instalar Python ni ninguna dependencia.
-
-### Controles
-- **Clic** en eventos para responder
-- **F11** — pantalla completa
-- **Rueda del ratón** — scroll en el log
-- **ESC** — volver"
-            draft = $false
-            prerelease = $false
-          } | ConvertTo-Json
-
-          $release = Invoke-RestMethod `
-            -Uri "https://api.github.com/repos/$repo/releases" `
-            -Headers $headers -Method Post `
-            -Body $body -ContentType "application/json"
-
-          Write-Host "Release created: $($release.upload_url)"
-
-          # Upload ZIP
-          $uploadUrl = $release.upload_url -replace '\{.*\}', ''
-          $uploadUrl += "?name=THRESHOLD-Windows.zip&label=THRESHOLD-Windows.zip"
-
-          $fileBytes = [System.IO.File]::ReadAllBytes("THRESHOLD-Windows.zip")
-          Invoke-RestMethod `
-            -Uri $uploadUrl `
-            -Headers $headers -Method Post `
-            -Body $fileBytes -ContentType "application/zip"
-
-          Write-Host "Upload complete!"
-          Write-Host "Download: https://github.com/$repo/releases/tag/$tag"
+          ### Controles
+          - **Clic** en eventos para responder
+          - **F11** — pantalla completa
+          - **Rueda del ratón** — scroll en el log"
