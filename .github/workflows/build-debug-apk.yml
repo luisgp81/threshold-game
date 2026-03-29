@@ -27,11 +27,13 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
-          cache: gradle
 
-      # ── Gradle wrapper permissions ───────────────────────────────────────────
-      - name: Grant execute permission for gradlew
-        run: chmod +x medialert/gradlew
+      # ── Gradle (no wrapper committed — install directly) ─────────────────────
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+          cache-read-only: false
 
       # ── local.properties ────────────────────────────────────────────────────
       # Provides the Gemini API key (and SDK path is resolved automatically on CI)
@@ -88,7 +90,7 @@ jobs:
       # ── Build ────────────────────────────────────────────────────────────────
       - name: Build debug APK
         working-directory: medialert
-        run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
+        run: gradle :app:assembleDebug --stacktrace --no-daemon
 
       # ── Rename APK with metadata ──────────────────────────────────────────────
       - name: Prepare APK artifact
