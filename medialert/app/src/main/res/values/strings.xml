@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MediAlert</string>
+
+    <!-- Auth -->
+    <string name="auth_subtitle">Gestión inteligente de medicamentos para ti y los tuyos</string>
+    <string name="auth_sign_in_google">Continuar con Google</string>
+    <string name="default_web_client_id">YOUR_WEB_CLIENT_ID_HERE</string>
+
+    <!-- Navigation -->
+    <string name="today_title">Hoy</string>
+    <string name="inventory_title">Medicamentos</string>
+    <string name="history_title">Historial</string>
+    <string name="settings_title">Ajustes</string>
+
+    <!-- Today screen -->
+    <string name="today_progress_title">%1$d de %2$d tomas completadas</string>
+    <string name="today_empty_title">Sin tomas para hoy</string>
+    <string name="today_empty_subtitle">Añade medicamentos para empezar a controlar tus tomas</string>
+
+    <!-- Actions -->
+    <string name="action_taken">Tomado</string>
+    <string name="action_skip">Omitir</string>
+    <string name="action_add_medication">Añadir medicamento</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_accept">Aceptar</string>
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_save_all">Guardar todos</string>
+    <string name="action_capture">Capturar foto</string>
+    <string name="action_grant_permission">Conceder permiso</string>
+    <string name="action_confirm_logout">Cerrar sesión</string>
+
+    <!-- Inventory -->
+    <string name="inventory_empty_title">Sin medicamentos</string>
+    <string name="filter_all">Todos</string>
+    <string name="filter_active">Activos</string>
+    <string name="filter_paused">Pausados</string>
+    <string name="filter_finished">Finalizados</string>
+    <string name="scan_prescription">Escanear receta</string>
+    <string name="scan_box">Escanear caja</string>
+    <string name="scan_dose">Verificar toma</string>
+    <string name="add_manual">Añadir manualmente</string>
+    <string name="stock_units">%1$d unidades</string>
+    <string name="verify_box">Verificar caja</string>
+
+    <!-- Medication Detail -->
+    <string name="stock_label">Stock</string>
+    <string name="stock_days_remaining">Para %1$d días (hasta %2$s)</string>
+    <string name="stock_minimum">Mínimo: %1$d unidades</string>
+    <string name="schedule_label">Pauta</string>
+    <string name="no_schedule">Sin pauta configurada</string>
+    <string name="instructions_label">Instrucciones especiales</string>
+    <string name="view_prospectus">Ver prospecto oficial</string>
+    <string name="edit_stock_title">Actualizar stock</string>
+
+    <!-- Medication Add -->
+    <string name="add_medication_title">Nuevo medicamento</string>
+    <string name="field_name">Nombre</string>
+    <string name="field_active_ingredient">Principio activo</string>
+    <string name="field_form">Forma farmacéutica</string>
+    <string name="field_dose">Dosis</string>
+    <string name="field_unit">Unidad</string>
+    <string name="field_stock">Stock actual</string>
+    <string name="field_min_stock">Stock mínimo</string>
+    <string name="field_instructions">Instrucciones especiales</string>
+    <string name="field_concentration">Concentración</string>
+    <string name="field_laboratory">Laboratorio</string>
+    <string name="field_units">Unidades por caja</string>
+    <string name="field_phone">Teléfono</string>
+
+    <!-- Scan -->
+    <string name="scan_analyzing">Analizando imagen…</string>
+    <string name="scan_result_prescription">%1$d medicamento(s) detectado(s)</string>
+    <string name="scan_result_box">Datos de la caja</string>
+    <string name="scan_error">Error al analizar la imagen</string>
+    <string name="low_confidence">⚠ Verificar este campo</string>
+    <string name="dose_match_ok">✅ El medicamento coincide</string>
+    <string name="dose_match_fail">❌ El medicamento NO coincide</string>
+
+    <!-- Camera -->
+    <string name="camera_permission_title">Permiso de cámara necesario</string>
+    <string name="camera_permission_desc">MediAlert necesita acceder a la cámara para escanear medicamentos y recetas</string>
+
+    <!-- Elder Mode -->
+    <string name="elder_pending">%1$d toma(s) pendiente(s)</string>
+    <string name="elder_all_done">¡Todo tomado!\nBuen trabajo</string>
+    <string name="elder_taken">✅ Ya lo tomé</string>
+    <string name="elder_emergency">🆘 Llamar emergencia</string>
+    <string name="mode_caretaker">Modo Cuidador</string>
+    <string name="mode_elder">Modo Mayor</string>
+
+    <!-- History -->
+    <string name="history_taken">Tomada</string>
+    <string name="history_taken_late">Tomada tarde</string>
+    <string name="history_skipped">Omitida</string>
+    <string name="history_pending">Pendiente</string>
+
+    <!-- Settings -->
+    <string name="settings_section_mode">Perfil</string>
+    <string name="settings_section_emergency">Emergencia</string>
+    <string name="settings_section_appearance">Apariencia</string>
+    <string name="settings_section_account">Cuenta</string>
+    <string name="settings_user_mode">Modo de usuario</string>
+    <string name="settings_pin">PIN de cuidador</string>
+    <string name="settings_emergency_contact">Contacto de emergencia</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_logout">Cerrar sesión</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="theme_system">Sistema</string>
+    <string name="pin_set">PIN configurado</string>
+    <string name="pin_not_set">Sin PIN</string>
+    <string name="emergency_not_set">No configurado</string>
+
+    <!-- PIN -->
+    <string name="pin_enter_title">Introduce el PIN</string>
+    <string name="pin_set_title">Configurar PIN</string>
+    <string name="pin_switch_title">PIN para cambiar modo</string>
+    <string name="pin_confirm_prompt">Confirma el PIN</string>
+
+    <!-- Logout -->
+    <string name="logout_confirm_title">¿Cerrar sesión?</string>
+    <string name="logout_confirm_message">Se borrarán las preferencias locales. Los datos de medicamentos se mantendrán.</string>
+
+    <!-- Notifications -->
+    <string name="channel_reminder_name">Recordatorios de medicación</string>
+    <string name="channel_reminder_description">Notificaciones para tomar medicamentos a tiempo</string>
+    <string name="channel_stock_name">Alertas de stock</string>
+    <string name="channel_stock_description">Avisos cuando el stock de un medicamento es bajo</string>
+    <string name="channel_backup_name">Copia de seguridad</string>
+    <string name="notif_title_reminder">Hora de tomar %1$s</string>
+    <string name="notif_title_followup">¿Has tomado %1$s?</string>
+    <string name="notif_title_final_reminder">Último aviso: %1$s</string>
+    <string name="notif_title_low_stock">Stock bajo de medicamento</string>
+    <string name="notif_followup_text">Recuerda tomar tu medicamento</string>
+    <string name="notif_low_stock_text">%1$s: quedan %2$d unidades</string>
+    <string name="notif_action_taken">✅ Tomado</string>
+    <string name="notif_action_snooze">⏰ En 5 min</string>
+    <string name="notif_action_skip">❌ Omitir</string>
+    <string name="notif_action_taken_yes">Sí, ya lo tomé</string>
+</resources>

@@ -1,0 +1,44 @@
+{
+  "_comment": "TEMPLATE — copy to google-services.json and replace all placeholder values",
+  "_instructions": [
+    "1. Go to https://console.firebase.google.com",
+    "2. Create project (or open existing) → Add Android app",
+    "3. Package name: com.medialert",
+    "4. Register app, download google-services.json and place in app/ folder",
+    "5. Enable Google Sign-In in Firebase Authentication → Sign-in method",
+    "6. Add your debug SHA-1 fingerprint: ./gradlew signingReport",
+    "7. For Gemini API key: https://aistudio.google.com/app/apikey → add to local.properties"
+  ],
+  "project_info": {
+    "project_number": "YOUR_PROJECT_NUMBER",
+    "project_id": "YOUR_PROJECT_ID",
+    "storage_bucket": "YOUR_PROJECT_ID.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:YOUR_PROJECT_NUMBER:android:YOUR_APP_HASH",
+        "android_client_info": {
+          "package_name": "com.medialert"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "YOUR_ANDROID_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

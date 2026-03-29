@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MediAlert</string>
+
+    <!-- Auth -->
+    <string name="auth_subtitle">Smart medication management for you and your loved ones</string>
+    <string name="auth_sign_in_google">Continue with Google</string>
+
+    <!-- Navigation -->
+    <string name="today_title">Today</string>
+    <string name="inventory_title">Medications</string>
+    <string name="history_title">History</string>
+    <string name="settings_title">Settings</string>
+
+    <!-- Today screen -->
+    <string name="today_progress_title">%1$d of %2$d doses completed</string>
+    <string name="today_empty_title">No doses today</string>
+    <string name="today_empty_subtitle">Add medications to start tracking your doses</string>
+
+    <!-- Actions -->
+    <string name="action_taken">Taken</string>
+    <string name="action_skip">Skip</string>
+    <string name="action_add_medication">Add medication</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_accept">Accept</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_save_all">Save all</string>
+    <string name="action_capture">Capture photo</string>
+    <string name="action_grant_permission">Grant permission</string>
+    <string name="action_confirm_logout">Sign out</string>
+
+    <!-- Inventory -->
+    <string name="inventory_empty_title">No medications</string>
+    <string name="filter_all">All</string>
+    <string name="filter_active">Active</string>
+    <string name="filter_paused">Paused</string>
+    <string name="filter_finished">Finished</string>
+    <string name="scan_prescription">Scan prescription</string>
+    <string name="scan_box">Scan box</string>
+    <string name="scan_dose">Verify dose</string>
+    <string name="add_manual">Add manually</string>
+    <string name="stock_units">%1$d units</string>
+    <string name="verify_box">Verify box</string>
+
+    <!-- Medication Detail -->
+    <string name="stock_label">Stock</string>
+    <string name="stock_days_remaining">Enough for %1$d days (until %2$s)</string>
+    <string name="stock_minimum">Minimum: %1$d units</string>
+    <string name="schedule_label">Schedule</string>
+    <string name="no_schedule">No schedule configured</string>
+    <string name="instructions_label">Special instructions</string>
+    <string name="view_prospectus">View official leaflet</string>
+    <string name="edit_stock_title">Update stock</string>
+
+    <!-- Medication Add -->
+    <string name="add_medication_title">New medication</string>
+    <string name="field_name">Name</string>
+    <string name="field_active_ingredient">Active ingredient</string>
+    <string name="field_form">Pharmaceutical form</string>
+    <string name="field_dose">Dose</string>
+    <string name="field_unit">Unit</string>
+    <string name="field_stock">Current stock</string>
+    <string name="field_min_stock">Minimum stock</string>
+    <string name="field_instructions">Special instructions</string>
+    <string name="field_concentration">Concentration</string>
+    <string name="field_laboratory">Laboratory</string>
+    <string name="field_units">Units per box</string>
+    <string name="field_phone">Phone</string>
+
+    <!-- Scan -->
+    <string name="scan_analyzing">Analyzing image…</string>
+    <string name="scan_result_prescription">%1$d medication(s) detected</string>
+    <string name="scan_result_box">Box data</string>
+    <string name="scan_error">Error analyzing the image</string>
+    <string name="low_confidence">⚠ Please verify this field</string>
+    <string name="dose_match_ok">✅ Medication matches</string>
+    <string name="dose_match_fail">❌ Medication does NOT match</string>
+
+    <!-- Camera -->
+    <string name="camera_permission_title">Camera permission required</string>
+    <string name="camera_permission_desc">MediAlert needs camera access to scan medications and prescriptions</string>
+
+    <!-- Elder Mode -->
+    <string name="elder_pending">%1$d pending dose(s)</string>
+    <string name="elder_all_done">All done!\nGreat job</string>
+    <string name="elder_taken">✅ I\'ve taken it</string>
+    <string name="elder_emergency">🆘 Emergency call</string>
+    <string name="mode_caretaker">Caretaker Mode</string>
+    <string name="mode_elder">Elder Mode</string>
+
+    <!-- History -->
+    <string name="history_taken">Taken</string>
+    <string name="history_taken_late">Taken late</string>
+    <string name="history_skipped">Skipped</string>
+    <string name="history_pending">Pending</string>
+
+    <!-- Settings -->
+    <string name="settings_section_mode">Profile</string>
+    <string name="settings_section_emergency">Emergency</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_account">Account</string>
+    <string name="settings_user_mode">User mode</string>
+    <string name="settings_pin">Caretaker PIN</string>
+    <string name="settings_emergency_contact">Emergency contact</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_logout">Sign out</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System default</string>
+    <string name="pin_set">PIN configured</string>
+    <string name="pin_not_set">No PIN set</string>
+    <string name="emergency_not_set">Not configured</string>
+
+    <!-- PIN -->
+    <string name="pin_enter_title">Enter PIN</string>
+    <string name="pin_set_title">Set PIN</string>
+    <string name="pin_switch_title">PIN to switch mode</string>
+    <string name="pin_confirm_prompt">Confirm PIN</string>
+
+    <!-- Logout -->
+    <string name="logout_confirm_title">Sign out?</string>
+    <string name="logout_confirm_message">Local preferences will be cleared. Medication data will be preserved.</string>
+
+    <!-- Notifications -->
+    <string name="channel_reminder_name">Medication reminders</string>
+    <string name="channel_reminder_description">Notifications to take medications on time</string>
+    <string name="channel_stock_name">Stock alerts</string>
+    <string name="channel_stock_description">Alerts when a medication\'s stock is low</string>
+    <string name="channel_backup_name">Backup</string>
+    <string name="notif_title_reminder">Time to take %1$s</string>
+    <string name="notif_title_followup">Did you take %1$s?</string>
+    <string name="notif_title_final_reminder">Final reminder: %1$s</string>
+    <string name="notif_title_low_stock">Medication low stock</string>
+    <string name="notif_followup_text">Remember to take your medication</string>
+    <string name="notif_low_stock_text">%1$s: %2$d units remaining</string>
+    <string name="notif_action_taken">✅ Taken</string>
+    <string name="notif_action_snooze">⏰ In 5 min</string>
+    <string name="notif_action_skip">❌ Skip</string>
+    <string name="notif_action_taken_yes">Yes, I took it</string>
+</resources>

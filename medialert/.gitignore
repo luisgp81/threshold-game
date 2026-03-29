@@ -1,0 +1,26 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+*.jks
+*.keystore
+
+# Firebase — never commit credentials
+app/google-services.json
+
+# Generated Room schemas (optional — commit if you want migration history)
+app/schemas/
+
+# ProGuard mapping files (keep for production crash symbolication)
+# /app/build/outputs/mapping/
