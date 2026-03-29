@@ -1,0 +1,170 @@
+name: Build Debug APK
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["**"]
+
+permissions:
+  contents: write   # needed to create/update releases
+
+jobs:
+  build:
+    name: Build & Release Debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so git describe works
+
+      # ── Java ────────────────────────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: gradle
+
+      # ── Gradle wrapper permissions ───────────────────────────────────────────
+      - name: Grant execute permission for gradlew
+        run: chmod +x medialert/gradlew
+
+      # ── local.properties ────────────────────────────────────────────────────
+      # Provides the Gemini API key (and SDK path is resolved automatically on CI)
+      - name: Create local.properties
+        working-directory: medialert
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          echo "GEMINI_API_KEY=${GEMINI_API_KEY:-__CI_PLACEHOLDER__}" >> local.properties
+          echo "ADMOB_APP_ID=ca-app-pub-3940256099942544~3347511713" >> local.properties
+
+      # ── google-services.json ─────────────────────────────────────────────────
+      # Write from secret if available; fall back to a compilable stub so the
+      # build succeeds even without a real Firebase project configured.
+      - name: Write google-services.json
+        working-directory: medialert/app
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" > google-services.json
+            echo "✅ Used google-services.json from secret"
+          else
+            cat > google-services.json << 'STUB'
+          {
+            "project_info": {
+              "project_number": "000000000000",
+              "project_id": "medialert-ci-stub",
+              "storage_bucket": "medialert-ci-stub.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+                  "android_client_info": { "package_name": "com.medialert" }
+                },
+                "oauth_client": [
+                  {
+                    "client_id": "000000000000-stub.apps.googleusercontent.com",
+                    "client_type": 3
+                  }
+                ],
+                "api_key": [{ "current_key": "CI_STUB_KEY" }],
+                "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          STUB
+            echo "⚠️  Used stub google-services.json (no GOOGLE_SERVICES_JSON secret found)"
+          fi
+
+      # ── Build ────────────────────────────────────────────────────────────────
+      - name: Build debug APK
+        working-directory: medialert
+        run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
+
+      # ── Rename APK with metadata ──────────────────────────────────────────────
+      - name: Prepare APK artifact
+        id: apk_info
+        working-directory: medialert
+        run: |
+          # Locate the built APK
+          APK_SRC=$(find app/build/outputs/apk/debug -name "*.apk" | head -1)
+
+          # Build a descriptive name: MediAlert-debug-<short-sha>[-<tag>].apk
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          REF_NAME="${GITHUB_REF_NAME//\//-}"          # replace slashes in branch names
+          APK_NAME="MediAlert-debug-${SHORT_SHA}-${REF_NAME}.apk"
+
+          cp "$APK_SRC" "$APK_NAME"
+
+          echo "apk_path=medialert/${APK_NAME}" >> "$GITHUB_OUTPUT"
+          echo "apk_name=${APK_NAME}"           >> "$GITHUB_OUTPUT"
+          echo "short_sha=${SHORT_SHA}"         >> "$GITHUB_OUTPUT"
+
+      # ── Upload workflow artifact (always available from the Actions run) ─────
+      - name: Upload APK as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk_info.outputs.apk_name }}
+          path: ${{ steps.apk_info.outputs.apk_path }}
+          retention-days: 30
+          if-no-files-found: error
+
+      # ── Upsert rolling "latest-debug" GitHub Release ─────────────────────────
+      # Deletes the previous pre-release with the same tag and re-creates it so
+      # there is always exactly one "latest debug build" easy to find & download.
+      - name: Update rolling latest-debug release
+        if: github.ref_type == 'branch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APK_PATH: ${{ steps.apk_info.outputs.apk_path }}
+          APK_NAME: ${{ steps.apk_info.outputs.apk_name }}
+          SHORT_SHA: ${{ steps.apk_info.outputs.short_sha }}
+        run: |
+          TAG="latest-debug"
+          BRANCH="${GITHUB_REF_NAME}"
+          REPO="${GITHUB_REPOSITORY}"
+          TIMESTAMP=$(date -u "+%Y-%m-%d %H:%M UTC")
+
+          # Delete the old release + tag (ignore errors if they don't exist yet)
+          gh release delete "$TAG" --repo "$REPO" --yes 2>/dev/null || true
+          git push origin ":refs/tags/$TAG" 2>/dev/null || true
+
+          # Create the new rolling pre-release
+          gh release create "$TAG" \
+            --repo      "$REPO" \
+            --title     "Latest debug build" \
+            --notes     "**Automated debug build** — updated on every push.
+
+          | Field | Value |
+          |-------|-------|
+          | Branch | \`${BRANCH}\` |
+          | Commit | \`${SHORT_SHA}\` |
+          | Built  | ${TIMESTAMP} |
+
+          > This is a pre-release. Download the APK below and install it with \`adb install <file>\` or enable *Install unknown apps* on the device." \
+            --prerelease \
+            --target     "$GITHUB_SHA" \
+            "$APK_PATH#${APK_NAME}"
+
+      # ── Create versioned GitHub Release for tags ──────────────────────────────
+      - name: Create versioned release (tag push)
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APK_PATH: ${{ steps.apk_info.outputs.apk_path }}
+          APK_NAME: ${{ steps.apk_info.outputs.apk_name }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --repo    "$GITHUB_REPOSITORY" \
+            --title   "MediAlert $GITHUB_REF_NAME" \
+            --generate-notes \
+            "$APK_PATH#${APK_NAME}"
