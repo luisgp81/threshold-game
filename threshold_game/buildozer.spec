@@ -12,14 +12,13 @@ requirements = python3,pygame-ce
 
 orientation = landscape
 
-android.archs = arm64-v8a
+android.archs = arm64-v8a,armeabi-v7a
 
 # Android permissions
 android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,VIBRATE
 
 android.api = 33
 android.minapi = 26
-android.ndk = 25b
 android.sdk = 33
 android.accept_sdk_license = True
 
@@ -29,11 +28,9 @@ android.wakelock = True
 # Fullscreen
 fullscreen = 1
 
-# Icons (place a 512x512 icon.png in the assets/ folder)
-# icon.filename = %(source.dir)s/assets/icon.png
-
-# Presplash (place a presplash.png in assets/)
-# presplash.filename = %(source.dir)s/assets/presplash.png
+# Use develop branch of p4a for better pygame-ce support
+p4a.fork = kivy
+p4a.branch = develop
 
 log_level = 2
 
